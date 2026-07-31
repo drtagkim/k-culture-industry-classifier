@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>콘텐츠산업 특수분류 온톨로지 탐색기</title>
+<style>
+:root{
+  color-scheme: light;
+  --surface-1:#fcfcfb; --page:#f9f9f7;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
+  --depth-1:#184f95; --depth-2:#3987e5; --depth-3:#86b6ef;
+  --accent:#eb6834; --dim:#c3c2b7;
+  --hover-wash:rgba(11,11,11,0.05);
+  --shadow:0 1px 3px rgba(11,11,11,.08), 0 8px 24px rgba(11,11,11,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --surface-1:#1a1a19; --page:#0d0d0d;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+    --depth-1:#9ec5f4; --depth-2:#3987e5; --depth-3:#184f95;
+    --accent:#d95926; --dim:#383835;
+    --hover-wash:rgba(255,255,255,0.06);
+    --shadow:0 1px 3px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-1:#1a1a19; --page:#0d0d0d;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+  --depth-1:#9ec5f4; --depth-2:#3987e5; --depth-3:#184f95;
+  --accent:#d95926; --dim:#383835;
+  --hover-wash:rgba(255,255,255,0.06);
+  --shadow:0 1px 3px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--page); color:var(--text-primary);
+  font-family:system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  font-size:13px; line-height:1.5; overflow:hidden;
+}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:650}
+
+/* ---------- header ---------- */
+header{
+  display:flex;align-items:center;gap:16px;padding:10px 16px;
+  background:var(--surface-1);border-bottom:1px solid var(--border);
+  height:56px;flex-shrink:0;
+}
+.brand{display:flex;flex-direction:column;gap:1px;min-width:0}
+.brand h1{font-size:14px;letter-spacing:-.01em;white-space:nowrap}
+.brand .sub{font-size:11px;color:var(--muted);white-space:nowrap}
+.hero{display:flex;gap:18px;margin-left:8px;padding-left:18px;border-left:1px solid var(--border)}
+.hero .stat{display:flex;flex-direction:column;line-height:1.15}
+.hero .v{font-size:19px;font-weight:660;letter-spacing:-.02em}
+.hero .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.spacer{flex:1}
+.seg{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.seg button{
+  background:transparent;border:0;padding:6px 12px;cursor:pointer;
+  color:var(--text-secondary);font-size:12px;
+}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button:hover{background:var(--hover-wash)}
+.seg button[aria-pressed="true"]{background:var(--depth-2);color:#fff;font-weight:600}
+.icon-btn{
+  background:transparent;border:1px solid var(--border);border-radius:7px;
+  padding:6px 10px;cursor:pointer;color:var(--text-secondary);font-size:12px;
+}
+.icon-btn:hover{background:var(--hover-wash)}
+
+/* ---------- layout ---------- */
+.layout{display:flex;height:calc(100% - 56px)}
+aside{
+  background:var(--surface-1);overflow-y:auto;flex-shrink:0;
+  scrollbar-width:thin;
+}
+.sidebar{width:264px;border-right:1px solid var(--border)}
+.detail{width:308px;border-left:1px solid var(--border)}
+main{flex:1;position:relative;min-width:0;background:var(--surface-1)}
+
+.panel{padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel h2{
+  font-size:10px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);margin-bottom:9px;font-weight:640;
+}
+
+/* ---------- search ---------- */
+.search-wrap{position:relative}
+.search-wrap input{
+  width:100%;padding:8px 28px 8px 10px;border:1px solid var(--axis);
+  border-radius:7px;background:var(--page);outline:none;
+}
+.search-wrap input:focus{border-color:var(--depth-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--depth-2) 18%,transparent)}
+.search-clear{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:transparent;border:0;cursor:pointer;color:var(--muted);
+  font-size:15px;line-height:1;padding:2px 4px;display:none;
+}
+.search-wrap.has-value .search-clear{display:block}
+.search-hint{font-size:10.5px;color:var(--muted);margin-top:6px}
+.results{margin-top:8px;max-height:220px;overflow-y:auto;border-top:1px solid var(--border)}
+.results:empty{display:none}
+.res{
+  display:flex;gap:8px;align-items:baseline;padding:6px 4px;cursor:pointer;
+  border-bottom:1px solid var(--border);
+}
+.res:hover,.res.kbd{background:var(--hover-wash)}
+.res .c{font-variant-numeric:tabular-nums;color:var(--muted);font-size:11px;flex-shrink:0;min-width:46px}
+.res .l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res mark{background:color-mix(in srgb,var(--accent) 30%,transparent);color:inherit;border-radius:2px}
+
+/* ---------- controls ---------- */
+.row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.row:last-child{margin-bottom:0}
+label.chk{display:flex;align-items:center;gap:8px;cursor:pointer;padding:3px 0}
+label.chk input{accent-color:var(--depth-2);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.swatch{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1px var(--border)}
+.cnt{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);font-size:11px}
+select{
+  width:100%;padding:7px 9px;border:1px solid var(--axis);border-radius:7px;
+  background:var(--page);cursor:pointer;outline:none;
+}
+select:focus{border-color:var(--depth-2)}
+.hint{font-size:10.5px;color:var(--muted);margin-top:7px;line-height:1.45}
+input[type=range]{width:100%;accent-color:var(--depth-2)}
+
+/* ---------- branch table ---------- */
+table.branches{width:100%;border-collapse:collapse;font-size:12px}
+table.branches th{
+  text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--muted);font-weight:640;padding:0 4px 5px;border-bottom:1px solid var(--border);
+}
+table.branches th.num,table.branches td.num{text-align:right;font-variant-numeric:tabular-nums}
+table.branches td{padding:5px 4px;border-bottom:1px solid var(--border)}
+table.branches tr{cursor:pointer}
+table.branches tbody tr:hover{background:var(--hover-wash)}
+table.branches tr.on td{background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:600}
+table.branches tr.on td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
+
+/* ---------- graph ---------- */
+svg.graph{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+svg.graph.dragging{cursor:grabbing}
+.link{fill:none;stroke:var(--axis);stroke-width:1.2}
+.link.top{stroke-dasharray:3 3}
+.link.dimmed{stroke:var(--dim);opacity:.22}
+.link.hl{stroke:var(--accent);stroke-width:2.2;opacity:1}
+.link.infer{stroke:var(--accent);stroke-width:1.6;stroke-dasharray:5 4;opacity:.9}
+.node circle{stroke:var(--surface-1);stroke-width:2;cursor:pointer;transition:opacity .15s}
+.node.dimmed circle{opacity:.2}
+.node.dimmed text{opacity:.22}
+.node.hit circle{stroke:var(--accent);stroke-width:3}
+.node.sel circle{stroke:var(--accent);stroke-width:3.5}
+.node text{
+  font-size:11px;fill:var(--text-primary);pointer-events:none;
+  paint-order:stroke;stroke:var(--surface-1);stroke-width:3.5px;stroke-linejoin:round;
+}
+.node.lv1 text{font-size:12.5px;font-weight:640}
+.node.lv3 text{font-size:10px;fill:var(--text-secondary)}
+.node.scheme text{font-size:13px;font-weight:680}
+
+.legend{
+  position:absolute;left:14px;bottom:14px;background:var(--surface-1);
+  border:1px solid var(--border);border-radius:9px;padding:9px 11px;
+  box-shadow:var(--shadow);font-size:11px;
+}
+.legend .t{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;font-weight:640}
+.legend .r{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.legend .r:last-child{margin-bottom:0}
+.zoombar{
+  position:absolute;right:14px;bottom:14px;display:flex;gap:5px;
+}
+.zoombar button{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+  background:var(--surface-1);cursor:pointer;box-shadow:var(--shadow);
+  font-size:14px;line-height:1;color:var(--text-secondary);
+}
+.zoombar button:hover{background:var(--hover-wash)}
+.zoombar button.wide{width:auto;padding:0 11px;font-size:11.5px}
+.tooltip{
+  position:absolute;pointer-events:none;z-index:20;opacity:0;transition:opacity .1s;
+  background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+  padding:7px 10px;box-shadow:var(--shadow);max-width:250px;
+}
+.tooltip.on{opacity:1}
+.tooltip .tc{font-variant-numeric:tabular-nums;color:var(--muted);font-size:10.5px}
+.tooltip .tl{font-weight:620;margin:1px 0 3px}
+.tooltip .tm{font-size:10.5px;color:var(--text-secondary)}
+.status{
+  position:absolute;left:50%;top:14px;transform:translateX(-50%);
+  background:var(--surface-1);border:1px solid var(--border);border-radius:20px;
+  padding:5px 14px;box-shadow:var(--shadow);font-size:11.5px;color:var(--text-secondary);
+  display:none;align-items:center;gap:8px;
+}
+.status.on{display:flex}
+.status button{background:transparent;border:0;color:var(--accent);cursor:pointer;font-weight:620;font-size:11.5px;padding:0}
+
+/* ---------- detail panel ---------- */
+.empty{padding:22px 16px;color:var(--muted);font-size:12px;line-height:1.6}
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;
+  font-weight:640;letter-spacing:.02em;color:#fff;
+}
+.crumb{display:flex;flex-wrap:wrap;gap:3px;align-items:center;font-size:11px;margin-bottom:10px}
+.crumb a{color:var(--depth-2);cursor:pointer;text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+.crumb .sep{color:var(--muted)}
+.crumb .cur{color:var(--text-secondary);font-weight:600}
+.dcode{font-variant-numeric:tabular-nums;color:var(--muted);font-size:11.5px;margin-bottom:2px}
+.dlabel{font-size:16px;font-weight:660;letter-spacing:-.01em;margin-bottom:9px;line-height:1.3}
+table.triples{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+table.triples td{padding:5px 0;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-word}
+table.triples td.p{width:104px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;padding-right:8px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;
+  border:1px solid var(--border);background:var(--page);cursor:pointer;font-size:11px;
+}
+.chip:hover{background:var(--hover-wash);border-color:var(--axis)}
+.chip .cc{font-variant-numeric:tabular-nums;color:var(--muted);font-size:10px}
+
+/* ---------- table view ---------- */
+.tableview{position:absolute;inset:0;background:var(--surface-1);overflow:auto;display:none;padding:16px}
+.tableview.on{display:block}
+table.full{width:100%;border-collapse:collapse;font-size:12px}
+table.full th{
+  text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--muted);font-weight:640;padding:7px 8px;border-bottom:1px solid var(--axis);
+  position:sticky;top:-16px;background:var(--surface-1);cursor:pointer;white-space:nowrap;
+}
+table.full th:hover{color:var(--text-primary)}
+table.full td{padding:6px 8px;border-bottom:1px solid var(--border)}
+table.full tbody tr{cursor:pointer}
+table.full tbody tr:hover{background:var(--hover-wash)}
+table.full td.num,table.full th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.full td.code{font-variant-numeric:tabular-nums;color:var(--text-secondary);white-space:nowrap}
+
+@media (max-width:1100px){
+  .detail{display:none}
+  .hero{display:none}
+}
+@media (max-width:820px){
+  .sidebar{width:224px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>콘텐츠산업 특수분류 — 온톨로지 탐색기</h1>
+    <div class="sub">KSSC 006 · 차수 02 · SKOS Concept Scheme</div>
+  </div>
+  <div class="hero">
+    <div class="stat"><span class="v" id="hTotal">195</span><span class="k">개념</span></div>
+    <div class="stat"><span class="v" id="hVis">195</span><span class="k">표시중</span></div>
+    <div class="stat"><span class="v" id="hRel">195</span><span class="k">관계</span></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="seg" role="group" aria-label="보기 전환">
+    <button id="vGraph" aria-pressed="true">네트워크</button>
+    <button id="vTable" aria-pressed="false">표</button>
+  </div>
+  <button class="icon-btn" id="themeBtn" title="라이트/다크 전환">◐ 테마</button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+
+    <div class="panel">
+      <h2>검색</h2>
+      <div class="search-wrap" id="searchWrap">
+        <input id="q" type="search" placeholder="분류명 · 코드 · 초성" autocomplete="off" aria-label="개념 검색">
+        <button class="search-clear" id="qClear" aria-label="검색어 지우기">×</button>
+      </div>
+      <div class="search-hint">초성 검색 지원 — 예: <b>ㅋㄹㅌ</b> → 캐릭터, <b>7-7</b> → 코드</div>
+      <div class="results" id="results" role="listbox"></div>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="onlyHits"> 검색 결과만 표시</label>
+    </div>
+
+    <div class="panel">
+      <h2>계층 (skos:broader 깊이)</h2>
+      <label class="chk"><input type="checkbox" data-lv="1" checked><span class="swatch" style="background:var(--depth-1)"></span>대분류<span class="cnt" id="c1">12</span></label>
+      <label class="chk"><input type="checkbox" data-lv="2" checked><span class="swatch" style="background:var(--depth-2)"></span>중분류<span class="cnt" id="c2">51</span></label>
+      <label class="chk"><input type="checkbox" data-lv="3" checked><span class="swatch" style="background:var(--depth-3)"></span>소분류<span class="cnt" id="c3">132</span></label>
+    </div>
+
+    <div class="panel">
+      <h2>온톨로지 관계</h2>
+      <label class="chk"><input type="checkbox" id="rNarrower" checked>skos:narrower <span style="color:var(--muted);font-size:10.5px">(상위→하위)</span></label>
+      <label class="chk"><input type="checkbox" id="rTop" checked>skos:topConceptOf</label>
+      <label class="chk"><input type="checkbox" id="rScheme" checked>스킴 노드 표시</label>
+      <label class="chk"><input type="checkbox" id="rArrow" checked>방향 화살표</label>
+      <label class="chk"><input type="checkbox" id="rInfer">skos:broaderTransitive <span style="color:var(--muted);font-size:10.5px">(추론)</span></label>
+      <div class="hint">broader / narrower 는 서로 역관계이므로 간선 하나로 표현하고, 화살표로 방향을 나타냅니다. 추론 옵션은 선택한 개념의 모든 조상까지 이행적 관계를 점선으로 그립니다.</div>
+    </div>
+
+    <div class="panel">
+      <h2>레이아웃</h2>
+      <select id="layoutSel">
+        <option value="force">힘 기반 네트워크 (force)</option>
+        <option value="radial">방사형 트리 (radial)</option>
+        <option value="tree">계층 트리 (top-down)</option>
+      </select>
+      <h2 style="margin-top:12px">초점 모드</h2>
+      <select id="focusSel">
+        <option value="off">끄기 — 전체 보기</option>
+        <option value="lineage">계보 — 조상 + 자손만</option>
+        <option value="hop">이웃 — N 홉 이내</option>
+      </select>
+      <div id="hopWrap" style="display:none;margin-top:9px">
+        <div class="row"><span style="font-size:11px;color:var(--muted)">반경</span><span class="cnt" id="hopVal">1 홉</span></div>
+        <input type="range" id="hopR" min="1" max="4" value="1" step="1">
+      </div>
+      <div class="hint">개념을 선택한 뒤 초점 모드를 켜면 그 개념의 관계망만 남깁니다.</div>
+    </div>
+
+    <div class="panel">
+      <h2>대분류 (12) — 클릭하여 강조</h2>
+      <table class="branches">
+        <thead><tr><th>분류</th><th class="num">중</th><th class="num">전체</th></tr></thead>
+        <tbody id="branchBody"></tbody>
+      </table>
+      <div class="hint">12개 대분류는 색상 한도(7~8)를 넘기 때문에 색이 아니라 <b>강조 + 표</b>로 구분합니다. 색은 계층 깊이만 나타냅니다.</div>
+    </div>
+
+    <div class="panel">
+      <button class="icon-btn" id="resetBtn" style="width:100%">전체 초기화</button>
+    </div>
+  </aside>
+
+  <main>
+    <svg class="graph" id="graph" role="img" aria-label="콘텐츠산업 특수분류 온톨로지 네트워크">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0,1 L10,5 L0,9" fill="none" stroke="context-stroke" stroke-width="1.6"/>
+        </marker>
+      </defs>
+      <g id="zoomG">
+        <g id="linkG"></g>
+        <g id="nodeG"></g>
+      </g>
+    </svg>
+    <div class="legend">
+      <div class="t">계층 깊이</div>
+      <div class="r"><span class="swatch" style="background:var(--depth-1);width:13px;height:13px"></span>대분류</div>
+      <div class="r"><span class="swatch" style="background:var(--depth-2);width:10px;height:10px"></span>중분류</div>
+      <div class="r"><span class="swatch" style="background:var(--depth-3);width:8px;height:8px"></span>소분류</div>
+    </div>
+    <div class="zoombar">
+      <button id="zOut" title="축소">−</button>
+      <button id="zIn" title="확대">+</button>
+      <button id="zFit" class="wide" title="전체 보기">맞춤</button>
+    </div>
+    <div class="tooltip" id="tip"></div>
+    <div class="status" id="status"><span id="statusText"></span><button id="statusClear">해제</button></div>
+
+    <div class="tableview" id="tableView">
+      <table class="full">
+        <thead><tr>
+          <th data-sort="code">분류코드</th>
+          <th data-sort="label">분류항목명</th>
+          <th data-sort="level">계층</th>
+          <th data-sort="branchLabel">대분류</th>
+          <th data-sort="parent">상위 (skos:broader)</th>
+          <th data-sort="childCount" class="num">하위</th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <aside class="detail" id="detail">
+    <div class="empty">개념을 클릭하면 SKOS 속성과 상·하위 관계가 여기에 표시됩니다.</div>
+  </aside>
+</div>
+
+<script>
+const DATA = {"scheme":{"id":"__scheme__","label":"콘텐츠산업 특수분류","labelEn":"Content Industry Special Classification","identifier":"006","revision":"02","source":"http://kssc.kostat.go.kr/ksscNew_web/kssc/common/ClassificationContent.do?gubun=1&strCategoryNameCode=006&categoryMenu=007&addGubun=no","publisher":"통계청 (Statistics Korea) — KSSC"},"nodes":[{"id":"1","code":"1","label":"출판산업","level":1,"parent":null,"branch":"1","children":["1-1","1-2","1-3","1-4","1-5"],"childCount":5,"descendantCount":19,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"}],"cho":"ㅊㅍㅅㅇ","search":"1 출판산업 출판산업 ㅊㅍㅅㅇ"},{"id":"1-1","code":"1-1","label":"출판업","level":2,"parent":"1","branch":"1","children":["1-1-1","1-1-2","1-1-3","1-1-4","1-1-5","1-1-9"],"childCount":6,"descendantCount":6,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"}],"cho":"ㅊㅍㅇ","search":"1-1 출판업 출판산업 ㅊㅍㅇ"},{"id":"1-1-1","code":"1-1-1","label":"일반 서적 출판업(종이매체출판업)","level":3,"parent":"1-1","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"},{"id":"1-1-1","label":"일반 서적 출판업(종이매체출판업)"}],"cho":"ㅇㅂㅅㅈㅊㅍㅇ(ㅈㅇㅁㅊㅊㅍㅇ)","search":"1-1-1 일반 서적 출판업(종이매체출판업) 출판산업 ㅇㅂㅅㅈㅊㅍㅇ(ㅈㅇㅁㅊㅊㅍㅇ)"},{"id":"1-1-2","code":"1-1-2","label":"교과서 및 학습 서적 출판업","level":3,"parent":"1-1","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"},{"id":"1-1-2","label":"교과서 및 학습 서적 출판업"}],"cho":"ㄱㄱㅅㅁㅎㅅㅅㅈㅊㅍㅇ","search":"1-1-2 교과서 및 학습 서적 출판업 출판산업 ㄱㄱㅅㅁㅎㅅㅅㅈㅊㅍㅇ"},{"id":"1-1-3","code":"1-1-3","label":"신문 발행업","level":3,"parent":"1-1","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"},{"id":"1-1-3","label":"신문 발행업"}],"cho":"ㅅㅁㅂㅎㅇ","search":"1-1-3 신문 발행업 출판산업 ㅅㅁㅂㅎㅇ"},{"id":"1-1-4","code":"1-1-4","label":"잡지 및 정기 간행물 발행업","level":3,"parent":"1-1","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"},{"id":"1-1-4","label":"잡지 및 정기 간행물 발행업"}],"cho":"ㅈㅈㅁㅈㄱㄱㅎㅁㅂㅎㅇ","search":"1-1-4 잡지 및 정기 간행물 발행업 출판산업 ㅈㅈㅁㅈㄱㄱㅎㅁㅂㅎㅇ"},{"id":"1-1-5","code":"1-1-5","label":"정기 광고 간행물 발행업","level":3,"parent":"1-1","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"},{"id":"1-1-5","label":"정기 광고 간행물 발행업"}],"cho":"ㅈㄱㄱㄱㄱㅎㅁㅂㅎㅇ","search":"1-1-5 정기 광고 간행물 발행업 출판산업 ㅈㄱㄱㄱㄱㅎㅁㅂㅎㅇ"},{"id":"1-1-9","code":"1-1-9","label":"기타 인쇄물 출판업","level":3,"parent":"1-1","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-1","label":"출판업"},{"id":"1-1-9","label":"기타 인쇄물 출판업"}],"cho":"ㄱㅌㅇㅅㅁㅊㅍㅇ","search":"1-1-9 기타 인쇄물 출판업 출판산업 ㄱㅌㅇㅅㅁㅊㅍㅇ"},{"id":"1-2","code":"1-2","label":"인쇄업","level":2,"parent":"1","branch":"1","children":["1-2-0"],"childCount":1,"descendantCount":1,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-2","label":"인쇄업"}],"cho":"ㅇㅅㅇ","search":"1-2 인쇄업 출판산업 ㅇㅅㅇ"},{"id":"1-2-0","code":"1-2-0","label":"인쇄업","level":3,"parent":"1-2","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-2","label":"인쇄업"},{"id":"1-2-0","label":"인쇄업"}],"cho":"ㅇㅅㅇ","search":"1-2-0 인쇄업 출판산업 ㅇㅅㅇ"},{"id":"1-3","code":"1-3","label":"출판 도소매업","level":2,"parent":"1","branch":"1","children":["1-3-1","1-3-2","1-3-3"],"childCount":3,"descendantCount":3,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-3","label":"출판 도소매업"}],"cho":"ㅊㅍㄷㅅㅁㅇ","search":"1-3 출판 도소매업 출판산업 ㅊㅍㄷㅅㅁㅇ"},{"id":"1-3-1","code":"1-3-1","label":"서적 및 잡지류 도매업","level":3,"parent":"1-3","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-3","label":"출판 도소매업"},{"id":"1-3-1","label":"서적 및 잡지류 도매업"}],"cho":"ㅅㅈㅁㅈㅈㄹㄷㅁㅇ","search":"1-3-1 서적 및 잡지류 도매업 출판산업 ㅅㅈㅁㅈㅈㄹㄷㅁㅇ"},{"id":"1-3-2","code":"1-3-2","label":"서적 및 잡지류 소매업","level":3,"parent":"1-3","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-3","label":"출판 도소매업"},{"id":"1-3-2","label":"서적 및 잡지류 소매업"}],"cho":"ㅅㅈㅁㅈㅈㄹㅅㅁㅇ","search":"1-3-2 서적 및 잡지류 소매업 출판산업 ㅅㅈㅁㅈㅈㄹㅅㅁㅇ"},{"id":"1-3-3","code":"1-3-3","label":"계약배달 판매업(신문배달판매)","level":3,"parent":"1-3","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-3","label":"출판 도소매업"},{"id":"1-3-3","label":"계약배달 판매업(신문배달판매)"}],"cho":"ㄱㅇㅂㄷㅍㅁㅇ(ㅅㅁㅂㄷㅍㅁ)","search":"1-3-3 계약배달 판매업(신문배달판매) 출판산업 ㄱㅇㅂㄷㅍㅁㅇ(ㅅㅁㅂㄷㅍㅁ)"},{"id":"1-4","code":"1-4","label":"온라인 출판 유통업","level":2,"parent":"1","branch":"1","children":["1-4-1","1-4-2","1-4-3"],"childCount":3,"descendantCount":3,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-4","label":"온라인 출판 유통업"}],"cho":"ㅇㄹㅇㅊㅍㅇㅌㅇ","search":"1-4 온라인 출판 유통업 출판산업 ㅇㄹㅇㅊㅍㅇㅌㅇ"},{"id":"1-4-1","code":"1-4-1","label":"인터넷/모바일 전자출판제작업","level":3,"parent":"1-4","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-4","label":"온라인 출판 유통업"},{"id":"1-4-1","label":"인터넷/모바일 전자출판제작업"}],"cho":"ㅇㅌㄴ/ㅁㅂㅇㅈㅈㅊㅍㅈㅈㅇ","search":"1-4-1 인터넷/모바일 전자출판제작업 출판산업 ㅇㅌㄴ/ㅁㅂㅇㅈㅈㅊㅍㅈㅈㅇ"},{"id":"1-4-2","code":"1-4-2","label":"인터넷/모바일 전자출판서비스업","level":3,"parent":"1-4","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-4","label":"온라인 출판 유통업"},{"id":"1-4-2","label":"인터넷/모바일 전자출판서비스업"}],"cho":"ㅇㅌㄴ/ㅁㅂㅇㅈㅈㅊㅍㅅㅂㅅㅇ","search":"1-4-2 인터넷/모바일 전자출판서비스업 출판산업 ㅇㅌㄴ/ㅁㅂㅇㅈㅈㅊㅍㅅㅂㅅㅇ"},{"id":"1-4-3","code":"1-4-3","label":"인터넷서점(만화제외)","level":3,"parent":"1-4","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-4","label":"온라인 출판 유통업"},{"id":"1-4-3","label":"인터넷서점(만화제외)"}],"cho":"ㅇㅌㄴㅅㅈ(ㅁㅎㅈㅇ)","search":"1-4-3 인터넷서점(만화제외) 출판산업 ㅇㅌㄴㅅㅈ(ㅁㅎㅈㅇ)"},{"id":"1-5","code":"1-5","label":"출판 임대업","level":2,"parent":"1","branch":"1","children":["1-5-0"],"childCount":1,"descendantCount":1,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-5","label":"출판 임대업"}],"cho":"ㅊㅍㅇㄷㅇ","search":"1-5 출판 임대업 출판산업 ㅊㅍㅇㄷㅇ"},{"id":"1-5-0","code":"1-5-0","label":"서적 임대업(만화제외)","level":3,"parent":"1-5","branch":"1","children":[],"childCount":0,"descendantCount":0,"branchLabel":"출판산업","path":[{"id":"1","label":"출판산업"},{"id":"1-5","label":"출판 임대업"},{"id":"1-5-0","label":"서적 임대업(만화제외)"}],"cho":"ㅅㅈㅇㄷㅇ(ㅁㅎㅈㅇ)","search":"1-5-0 서적 임대업(만화제외) 출판산업 ㅅㅈㅇㄷㅇ(ㅁㅎㅈㅇ)"},{"id":"2","code":"2","label":"만화산업","level":1,"parent":null,"branch":"2","children":["2-1","2-2","2-3","2-4"],"childCount":4,"descendantCount":15,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"}],"cho":"ㅁㅎㅅㅇ","search":"2 만화산업 만화산업 ㅁㅎㅅㅇ"},{"id":"2-1","code":"2-1","label":"만화 출판업","level":2,"parent":"2","branch":"2","children":["2-1-1","2-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-1","label":"만화 출판업"}],"cho":"ㅁㅎㅊㅍㅇ","search":"2-1 만화 출판업 만화산업 ㅁㅎㅊㅍㅇ"},{"id":"2-1-1","code":"2-1-1","label":"만화 출판사(만화잡지, 일일만화, 코믹스 등)","level":3,"parent":"2-1","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-1","label":"만화 출판업"},{"id":"2-1-1","label":"만화 출판사(만화잡지, 일일만화, 코믹스 등)"}],"cho":"ㅁㅎㅊㅍㅅ(ㅁㅎㅈㅈ,ㅇㅇㅁㅎ,ㅋㅁㅅㄷ)","search":"2-1-1 만화 출판사(만화잡지, 일일만화, 코믹스 등) 만화산업 ㅁㅎㅊㅍㅅ(ㅁㅎㅈㅈ,ㅇㅇㅁㅎ,ㅋㅁㅅㄷ)"},{"id":"2-1-2","code":"2-1-2","label":"일반 출판사(만화부문)","level":3,"parent":"2-1","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-1","label":"만화 출판업"},{"id":"2-1-2","label":"일반 출판사(만화부문)"}],"cho":"ㅇㅂㅊㅍㅅ(ㅁㅎㅂㅁ)","search":"2-1-2 일반 출판사(만화부문) 만화산업 ㅇㅂㅊㅍㅅ(ㅁㅎㅂㅁ)"},{"id":"2-2","code":"2-2","label":"온라인 만화 제작·유통업","level":2,"parent":"2","branch":"2","children":["2-2-1","2-2-2","2-2-3","2-2-4"],"childCount":4,"descendantCount":4,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-2","label":"온라인 만화 제작·유통업"}],"cho":"ㅇㄹㅇㅁㅎㅈㅈ·ㅇㅌㅇ","search":"2-2 온라인 만화 제작·유통업 만화산업 ㅇㄹㅇㅁㅎㅈㅈ·ㅇㅌㅇ"},{"id":"2-2-1","code":"2-2-1","label":"디지털만화 제작 및 제공(CP)","level":3,"parent":"2-2","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-2","label":"온라인 만화 제작·유통업"},{"id":"2-2-1","label":"디지털만화 제작 및 제공(CP)"}],"cho":"ㄷㅈㅌㅁㅎㅈㅈㅁㅈㄱ(cp)","search":"2-2-1 디지털만화 제작 및 제공(cp) 만화산업 ㄷㅈㅌㅁㅎㅈㅈㅁㅈㄱ(cp)"},{"id":"2-2-2","code":"2-2-2","label":"웹툰 제작 및 제공(CP)","level":3,"parent":"2-2","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-2","label":"온라인 만화 제작·유통업"},{"id":"2-2-2","label":"웹툰 제작 및 제공(CP)"}],"cho":"ㅇㅌㅈㅈㅁㅈㄱ(cp)","search":"2-2-2 웹툰 제작 및 제공(cp) 만화산업 ㅇㅌㅈㅈㅁㅈㄱ(cp)"},{"id":"2-2-3","code":"2-2-3","label":"디지털만화 서비스","level":3,"parent":"2-2","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-2","label":"온라인 만화 제작·유통업"},{"id":"2-2-3","label":"디지털만화 서비스"}],"cho":"ㄷㅈㅌㅁㅎㅅㅂㅅ","search":"2-2-3 디지털만화 서비스 만화산업 ㄷㅈㅌㅁㅎㅅㅂㅅ"},{"id":"2-2-4","code":"2-2-4","label":"웹툰 서비스","level":3,"parent":"2-2","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-2","label":"온라인 만화 제작·유통업"},{"id":"2-2-4","label":"웹툰 서비스"}],"cho":"ㅇㅌㅅㅂㅅ","search":"2-2-4 웹툰 서비스 만화산업 ㅇㅌㅅㅂㅅ"},{"id":"2-3","code":"2-3","label":"만화책 임대업","level":2,"parent":"2","branch":"2","children":["2-3-1","2-3-2"],"childCount":2,"descendantCount":2,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-3","label":"만화책 임대업"}],"cho":"ㅁㅎㅊㅇㄷㅇ","search":"2-3 만화책 임대업 만화산업 ㅁㅎㅊㅇㄷㅇ"},{"id":"2-3-1","code":"2-3-1","label":"만화임대(만화방, 만화카페 등)","level":3,"parent":"2-3","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-3","label":"만화책 임대업"},{"id":"2-3-1","label":"만화임대(만화방, 만화카페 등)"}],"cho":"ㅁㅎㅇㄷ(ㅁㅎㅂ,ㅁㅎㅋㅍㄷ)","search":"2-3-1 만화임대(만화방, 만화카페 등) 만화산업 ㅁㅎㅇㄷ(ㅁㅎㅂ,ㅁㅎㅋㅍㄷ)"},{"id":"2-3-2","code":"2-3-2","label":"서적임대(대여) (만화부문)","level":3,"parent":"2-3","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-3","label":"만화책 임대업"},{"id":"2-3-2","label":"서적임대(대여) (만화부문)"}],"cho":"ㅅㅈㅇㄷ(ㄷㅇ)(ㅁㅎㅂㅁ)","search":"2-3-2 서적임대(대여) (만화부문) 만화산업 ㅅㅈㅇㄷ(ㄷㅇ)(ㅁㅎㅂㅁ)"},{"id":"2-4","code":"2-4","label":"만화 도소매업","level":2,"parent":"2","branch":"2","children":["2-4-1","2-4-2","2-4-3"],"childCount":3,"descendantCount":3,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-4","label":"만화 도소매업"}],"cho":"ㅁㅎㄷㅅㅁㅇ","search":"2-4 만화 도소매업 만화산업 ㅁㅎㄷㅅㅁㅇ"},{"id":"2-4-1","code":"2-4-1","label":"만화 서적 및 잡지류 도매","level":3,"parent":"2-4","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-4","label":"만화 도소매업"},{"id":"2-4-1","label":"만화 서적 및 잡지류 도매"}],"cho":"ㅁㅎㅅㅈㅁㅈㅈㄹㄷㅁ","search":"2-4-1 만화 서적 및 잡지류 도매 만화산업 ㅁㅎㅅㅈㅁㅈㅈㄹㄷㅁ"},{"id":"2-4-2","code":"2-4-2","label":"만화 서적 및 잡지류 소매","level":3,"parent":"2-4","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-4","label":"만화 도소매업"},{"id":"2-4-2","label":"만화 서적 및 잡지류 소매"}],"cho":"ㅁㅎㅅㅈㅁㅈㅈㄹㅅㅁ","search":"2-4-2 만화 서적 및 잡지류 소매 만화산업 ㅁㅎㅅㅈㅁㅈㅈㄹㅅㅁ"},{"id":"2-4-3","code":"2-4-3","label":"인터넷서점(만화부문)","level":3,"parent":"2-4","branch":"2","children":[],"childCount":0,"descendantCount":0,"branchLabel":"만화산업","path":[{"id":"2","label":"만화산업"},{"id":"2-4","label":"만화 도소매업"},{"id":"2-4-3","label":"인터넷서점(만화부문)"}],"cho":"ㅇㅌㄴㅅㅈ(ㅁㅎㅂㅁ)","search":"2-4-3 인터넷서점(만화부문) 만화산업 ㅇㅌㄴㅅㅈ(ㅁㅎㅂㅁ)"},{"id":"3","code":"3","label":"음악산업","level":1,"parent":null,"branch":"3","children":["3-1","3-2","3-3","3-4","3-5","3-6","3-7"],"childCount":7,"descendantCount":23,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"}],"cho":"ㅇㅇㅅㅇ","search":"3 음악산업 음악산업 ㅇㅇㅅㅇ"},{"id":"3-1","code":"3-1","label":"음악 제작업","level":2,"parent":"3","branch":"3","children":["3-1-1","3-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-1","label":"음악 제작업"}],"cho":"ㅇㅇㅈㅈㅇ","search":"3-1 음악 제작업 음악산업 ㅇㅇㅈㅈㅇ"},{"id":"3-1-1","code":"3-1-1","label":"음악 기획 및 제작업","level":3,"parent":"3-1","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-1","label":"음악 제작업"},{"id":"3-1-1","label":"음악 기획 및 제작업"}],"cho":"ㅇㅇㄱㅎㅁㅈㅈㅇ","search":"3-1-1 음악 기획 및 제작업 음악산업 ㅇㅇㄱㅎㅁㅈㅈㅇ"},{"id":"3-1-2","code":"3-1-2","label":"음반(음원) 녹음시설 운영업","level":3,"parent":"3-1","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-1","label":"음악 제작업"},{"id":"3-1-2","label":"음반(음원) 녹음시설 운영업"}],"cho":"ㅇㅂ(ㅇㅇ)ㄴㅇㅅㅅㅇㅇㅇ","search":"3-1-2 음반(음원) 녹음시설 운영업 음악산업 ㅇㅂ(ㅇㅇ)ㄴㅇㅅㅅㅇㅇㅇ"},{"id":"3-2","code":"3-2","label":"음악 및 오디오물 출판업","level":2,"parent":"3","branch":"3","children":["3-2-1","3-2-2"],"childCount":2,"descendantCount":2,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-2","label":"음악 및 오디오물 출판업"}],"cho":"ㅇㅇㅁㅇㄷㅇㅁㅊㅍㅇ","search":"3-2 음악 및 오디오물 출판업 음악산업 ㅇㅇㅁㅇㄷㅇㅁㅊㅍㅇ"},{"id":"3-2-1","code":"3-2-1","label":"음악 오디오물 출판업","level":3,"parent":"3-2","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-2","label":"음악 및 오디오물 출판업"},{"id":"3-2-1","label":"음악 오디오물 출판업"}],"cho":"ㅇㅇㅇㄷㅇㅁㅊㅍㅇ","search":"3-2-1 음악 오디오물 출판업 음악산업 ㅇㅇㅇㄷㅇㅁㅊㅍㅇ"},{"id":"3-2-2","code":"3-2-2","label":"기타 오디오물 제작업","level":3,"parent":"3-2","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-2","label":"음악 및 오디오물 출판업"},{"id":"3-2-2","label":"기타 오디오물 제작업"}],"cho":"ㄱㅌㅇㄷㅇㅁㅈㅈㅇ","search":"3-2-2 기타 오디오물 제작업 음악산업 ㄱㅌㅇㄷㅇㅁㅈㅈㅇ"},{"id":"3-3","code":"3-3","label":"음악복제 및 배급업","level":2,"parent":"3","branch":"3","children":["3-3-1","3-3-2"],"childCount":2,"descendantCount":2,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-3","label":"음악복제 및 배급업"}],"cho":"ㅇㅇㅂㅈㅁㅂㄱㅇ","search":"3-3 음악복제 및 배급업 음악산업 ㅇㅇㅂㅈㅁㅂㄱㅇ"},{"id":"3-3-1","code":"3-3-1","label":"음반 복제업","level":3,"parent":"3-3","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-3","label":"음악복제 및 배급업"},{"id":"3-3-1","label":"음반 복제업"}],"cho":"ㅇㅂㅂㅈㅇ","search":"3-3-1 음반 복제업 음악산업 ㅇㅂㅂㅈㅇ"},{"id":"3-3-2","code":"3-3-2","label":"음반 배급업","level":3,"parent":"3-3","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-3","label":"음악복제 및 배급업"},{"id":"3-3-2","label":"음반 배급업"}],"cho":"ㅇㅂㅂㄱㅇ","search":"3-3-2 음반 배급업 음악산업 ㅇㅂㅂㄱㅇ"},{"id":"3-4","code":"3-4","label":"음반 도소매업","level":2,"parent":"3","branch":"3","children":["3-4-1","3-4-2","3-4-3"],"childCount":3,"descendantCount":3,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-4","label":"음반 도소매업"}],"cho":"ㅇㅂㄷㅅㅁㅇ","search":"3-4 음반 도소매업 음악산업 ㅇㅂㄷㅅㅁㅇ"},{"id":"3-4-1","code":"3-4-1","label":"음반 도매업","level":3,"parent":"3-4","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-4","label":"음반 도소매업"},{"id":"3-4-1","label":"음반 도매업"}],"cho":"ㅇㅂㄷㅁㅇ","search":"3-4-1 음반 도매업 음악산업 ㅇㅂㄷㅁㅇ"},{"id":"3-4-2","code":"3-4-2","label":"음반 소매업","level":3,"parent":"3-4","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-4","label":"음반 도소매업"},{"id":"3-4-2","label":"음반 소매업"}],"cho":"ㅇㅂㅅㅁㅇ","search":"3-4-2 음반 소매업 음악산업 ㅇㅂㅅㅁㅇ"},{"id":"3-4-3","code":"3-4-3","label":"인터넷 음반 소매업","level":3,"parent":"3-4","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-4","label":"음반 도소매업"},{"id":"3-4-3","label":"인터넷 음반 소매업"}],"cho":"ㅇㅌㄴㅇㅂㅅㅁㅇ","search":"3-4-3 인터넷 음반 소매업 음악산업 ㅇㅌㄴㅇㅂㅅㅁㅇ"},{"id":"3-5","code":"3-5","label":"온라인 음악 유통업","level":2,"parent":"3","branch":"3","children":["3-5-1","3-5-2","3-5-3","3-5-4"],"childCount":4,"descendantCount":4,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-5","label":"온라인 음악 유통업"}],"cho":"ㅇㄹㅇㅇㅇㅇㅌㅇ","search":"3-5 온라인 음악 유통업 음악산업 ㅇㄹㅇㅇㅇㅇㅌㅇ"},{"id":"3-5-1","code":"3-5-1","label":"모바일 음악 서비스업","level":3,"parent":"3-5","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-5","label":"온라인 음악 유통업"},{"id":"3-5-1","label":"모바일 음악 서비스업"}],"cho":"ㅁㅂㅇㅇㅇㅅㅂㅅㅇ","search":"3-5-1 모바일 음악 서비스업 음악산업 ㅁㅂㅇㅇㅇㅅㅂㅅㅇ"},{"id":"3-5-2","code":"3-5-2","label":"인터넷 음악 서비스업","level":3,"parent":"3-5","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-5","label":"온라인 음악 유통업"},{"id":"3-5-2","label":"인터넷 음악 서비스업"}],"cho":"ㅇㅌㄴㅇㅇㅅㅂㅅㅇ","search":"3-5-2 인터넷 음악 서비스업 음악산업 ㅇㅌㄴㅇㅇㅅㅂㅅㅇ"},{"id":"3-5-3","code":"3-5-3","label":"음원 대리 중개업","level":3,"parent":"3-5","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-5","label":"온라인 음악 유통업"},{"id":"3-5-3","label":"음원 대리 중개업"}],"cho":"ㅇㅇㄷㄹㅈㄱㅇ","search":"3-5-3 음원 대리 중개업 음악산업 ㅇㅇㄷㄹㅈㄱㅇ"},{"id":"3-5-4","code":"3-5-4","label":"인터넷/모바일 음악 콘텐츠 제작 및 제공업(CP)","level":3,"parent":"3-5","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-5","label":"온라인 음악 유통업"},{"id":"3-5-4","label":"인터넷/모바일 음악 콘텐츠 제작 및 제공업(CP)"}],"cho":"ㅇㅌㄴ/ㅁㅂㅇㅇㅇㅋㅌㅊㅈㅈㅁㅈㄱㅇ(cp)","search":"3-5-4 인터넷/모바일 음악 콘텐츠 제작 및 제공업(cp) 음악산업 ㅇㅌㄴ/ㅁㅂㅇㅇㅇㅋㅌㅊㅈㅈㅁㅈㄱㅇ(cp)"},{"id":"3-6","code":"3-6","label":"음악 공연업","level":2,"parent":"3","branch":"3","children":["3-6-1","3-6-2"],"childCount":2,"descendantCount":2,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-6","label":"음악 공연업"}],"cho":"ㅇㅇㄱㅇㅇ","search":"3-6 음악 공연업 음악산업 ㅇㅇㄱㅇㅇ"},{"id":"3-6-1","code":"3-6-1","label":"음악공연 기획 및 제작업","level":3,"parent":"3-6","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-6","label":"음악 공연업"},{"id":"3-6-1","label":"음악공연 기획 및 제작업"}],"cho":"ㅇㅇㄱㅇㄱㅎㅁㅈㅈㅇ","search":"3-6-1 음악공연 기획 및 제작업 음악산업 ㅇㅇㄱㅇㄱㅎㅁㅈㅈㅇ"},{"id":"3-6-2","code":"3-6-2","label":"기타 음악공연 서비스업","level":3,"parent":"3-6","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-6","label":"음악 공연업"},{"id":"3-6-2","label":"기타 음악공연 서비스업"}],"cho":"ㄱㅌㅇㅇㄱㅇㅅㅂㅅㅇ","search":"3-6-2 기타 음악공연 서비스업 음악산업 ㄱㅌㅇㅇㄱㅇㅅㅂㅅㅇ"},{"id":"3-7","code":"3-7","label":"노래연습장 운영업","level":2,"parent":"3","branch":"3","children":["3-7-0"],"childCount":1,"descendantCount":1,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-7","label":"노래연습장 운영업"}],"cho":"ㄴㄹㅇㅅㅈㅇㅇㅇ","search":"3-7 노래연습장 운영업 음악산업 ㄴㄹㅇㅅㅈㅇㅇㅇ"},{"id":"3-7-0","code":"3-7-0","label":"노래연습장 운영업","level":3,"parent":"3-7","branch":"3","children":[],"childCount":0,"descendantCount":0,"branchLabel":"음악산업","path":[{"id":"3","label":"음악산업"},{"id":"3-7","label":"노래연습장 운영업"},{"id":"3-7-0","label":"노래연습장 운영업"}],"cho":"ㄴㄹㅇㅅㅈㅇㅇㅇ","search":"3-7-0 노래연습장 운영업 음악산업 ㄴㄹㅇㅅㅈㅇㅇㅇ"},{"id":"4","code":"4","label":"영화산업","level":1,"parent":null,"branch":"4","children":["4-1","4-2"],"childCount":2,"descendantCount":15,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"}],"cho":"ㅇㅎㅅㅇ","search":"4 영화산업 영화산업 ㅇㅎㅅㅇ"},{"id":"4-1","code":"4-1","label":"영화 제작, 지원, 및 유통업","level":2,"parent":"4","branch":"4","children":["4-1-1","4-1-2","4-1-3","4-1-4","4-1-5","4-1-6","4-1-7"],"childCount":7,"descendantCount":7,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"}],"cho":"ㅇㅎㅈㅈ,ㅈㅇ,ㅁㅇㅌㅇ","search":"4-1 영화 제작, 지원, 및 유통업 영화산업 ㅇㅎㅈㅈ,ㅈㅇ,ㅁㅇㅌㅇ"},{"id":"4-1-1","code":"4-1-1","label":"영화 기획 및 제작","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-1","label":"영화 기획 및 제작"}],"cho":"ㅇㅎㄱㅎㅁㅈㅈ","search":"4-1-1 영화 기획 및 제작 영화산업 ㅇㅎㄱㅎㅁㅈㅈ"},{"id":"4-1-2","code":"4-1-2","label":"영화 수입","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-2","label":"영화 수입"}],"cho":"ㅇㅎㅅㅇ","search":"4-1-2 영화 수입 영화산업 ㅇㅎㅅㅇ"},{"id":"4-1-3","code":"4-1-3","label":"영화제작 지원","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-3","label":"영화제작 지원"}],"cho":"ㅇㅎㅈㅈㅈㅇ","search":"4-1-3 영화제작 지원 영화산업 ㅇㅎㅈㅈㅈㅇ"},{"id":"4-1-4","code":"4-1-4","label":"영화 배급","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-4","label":"영화 배급"}],"cho":"ㅇㅎㅂㄱ","search":"4-1-4 영화 배급 영화산업 ㅇㅎㅂㄱ"},{"id":"4-1-5","code":"4-1-5","label":"극장 상영","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-5","label":"극장 상영"}],"cho":"ㄱㅈㅅㅇ","search":"4-1-5 극장 상영 영화산업 ㄱㅈㅅㅇ"},{"id":"4-1-6","code":"4-1-6","label":"영화 홍보 및 마케팅","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-6","label":"영화 홍보 및 마케팅"}],"cho":"ㅇㅎㅎㅂㅁㅁㅋㅌ","search":"4-1-6 영화 홍보 및 마케팅 영화산업 ㅇㅎㅎㅂㅁㅁㅋㅌ"},{"id":"4-1-7","code":"4-1-7","label":"영화투자 조합","level":3,"parent":"4-1","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-1","label":"영화 제작, 지원, 및 유통업"},{"id":"4-1-7","label":"영화투자 조합"}],"cho":"ㅇㅎㅌㅈㅈㅎ","search":"4-1-7 영화투자 조합 영화산업 ㅇㅎㅌㅈㅈㅎ"},{"id":"4-2","code":"4-2","label":"DVD/VHS 제작 및 유통업","level":2,"parent":"4","branch":"4","children":["4-2-1","4-2-2","4-2-3","4-2-4","4-2-5","4-2-6"],"childCount":6,"descendantCount":6,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"}],"cho":"dvd/vhsㅈㅈㅁㅇㅌㅇ","search":"4-2 dvd/vhs 제작 및 유통업 영화산업 dvd/vhsㅈㅈㅁㅇㅌㅇ"},{"id":"4-2-1","code":"4-2-1","label":"DVD/VHS 제작","level":3,"parent":"4-2","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"},{"id":"4-2-1","label":"DVD/VHS 제작"}],"cho":"dvd/vhsㅈㅈ","search":"4-2-1 dvd/vhs 제작 영화산업 dvd/vhsㅈㅈ"},{"id":"4-2-2","code":"4-2-2","label":"DVD/VHS 도매","level":3,"parent":"4-2","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"},{"id":"4-2-2","label":"DVD/VHS 도매"}],"cho":"dvd/vhsㄷㅁ","search":"4-2-2 dvd/vhs 도매 영화산업 dvd/vhsㄷㅁ"},{"id":"4-2-3","code":"4-2-3","label":"DVD/VHS 소매(온라인 포함)","level":3,"parent":"4-2","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"},{"id":"4-2-3","label":"DVD/VHS 소매(온라인 포함)"}],"cho":"dvd/vhsㅅㅁ(ㅇㄹㅇㅍㅎ)","search":"4-2-3 dvd/vhs 소매(온라인 포함) 영화산업 dvd/vhsㅅㅁ(ㅇㄹㅇㅍㅎ)"},{"id":"4-2-4","code":"4-2-4","label":"DVD/VHS 대여","level":3,"parent":"4-2","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"},{"id":"4-2-4","label":"DVD/VHS 대여"}],"cho":"dvd/vhsㄷㅇ","search":"4-2-4 dvd/vhs 대여 영화산업 dvd/vhsㄷㅇ"},{"id":"4-2-5","code":"4-2-5","label":"DVD/VHS 상영","level":3,"parent":"4-2","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"},{"id":"4-2-5","label":"DVD/VHS 상영"}],"cho":"dvd/vhsㅅㅇ","search":"4-2-5 dvd/vhs 상영 영화산업 dvd/vhsㅅㅇ"},{"id":"4-2-6","code":"4-2-6","label":"온라인 상영","level":3,"parent":"4-2","branch":"4","children":[],"childCount":0,"descendantCount":0,"branchLabel":"영화산업","path":[{"id":"4","label":"영화산업"},{"id":"4-2","label":"DVD/VHS 제작 및 유통업"},{"id":"4-2-6","label":"온라인 상영"}],"cho":"ㅇㄹㅇㅅㅇ","search":"4-2-6 온라인 상영 영화산업 ㅇㄹㅇㅅㅇ"},{"id":"5","code":"5","label":"게임산업","level":1,"parent":null,"branch":"5","children":["5-1","5-2","5-3"],"childCount":3,"descendantCount":11,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"}],"cho":"ㄱㅇㅅㅇ","search":"5 게임산업 게임산업 ㄱㅇㅅㅇ"},{"id":"5-1","code":"5-1","label":"게임 제작 및 배급업","level":2,"parent":"5","branch":"5","children":["5-1-1","5-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-1","label":"게임 제작 및 배급업"}],"cho":"ㄱㅇㅈㅈㅁㅂㄱㅇ","search":"5-1 게임 제작 및 배급업 게임산업 ㄱㅇㅈㅈㅁㅂㄱㅇ"},{"id":"5-1-1","code":"5-1-1","label":"게임 기획 및 제작업","level":3,"parent":"5-1","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-1","label":"게임 제작 및 배급업"},{"id":"5-1-1","label":"게임 기획 및 제작업"}],"cho":"ㄱㅇㄱㅎㅁㅈㅈㅇ","search":"5-1-1 게임 기획 및 제작업 게임산업 ㄱㅇㄱㅎㅁㅈㅈㅇ"},{"id":"5-1-2","code":"5-1-2","label":"게임 배급업","level":3,"parent":"5-1","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-1","label":"게임 제작 및 배급업"},{"id":"5-1-2","label":"게임 배급업"}],"cho":"ㄱㅇㅂㄱㅇ","search":"5-1-2 게임 배급업 게임산업 ㄱㅇㅂㄱㅇ"},{"id":"5-2","code":"5-2","label":"게임 유통업","level":2,"parent":"5","branch":"5","children":["5-2-1","5-2-2"],"childCount":2,"descendantCount":2,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-2","label":"게임 유통업"}],"cho":"ㄱㅇㅇㅌㅇ","search":"5-2 게임 유통업 게임산업 ㄱㅇㅇㅌㅇ"},{"id":"5-2-1","code":"5-2-1","label":"컴퓨터 게임방 운영업","level":3,"parent":"5-2","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-2","label":"게임 유통업"},{"id":"5-2-1","label":"컴퓨터 게임방 운영업"}],"cho":"ㅋㅍㅌㄱㅇㅂㅇㅇㅇ","search":"5-2-1 컴퓨터 게임방 운영업 게임산업 ㅋㅍㅌㄱㅇㅂㅇㅇㅇ"},{"id":"5-2-2","code":"5-2-2","label":"전자 게임장 운영업","level":3,"parent":"5-2","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-2","label":"게임 유통업"},{"id":"5-2-2","label":"전자 게임장 운영업"}],"cho":"ㅈㅈㄱㅇㅈㅇㅇㅇ","search":"5-2-2 전자 게임장 운영업 게임산업 ㅈㅈㄱㅇㅈㅇㅇㅇ"},{"id":"5-3","code":"5-3","label":"게임 도소매 및 임대업","level":2,"parent":"5","branch":"5","children":["5-3-1","5-3-2","5-3-3","5-3-4"],"childCount":4,"descendantCount":4,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-3","label":"게임 도소매 및 임대업"}],"cho":"ㄱㅇㄷㅅㅁㅁㅇㄷㅇ","search":"5-3 게임 도소매 및 임대업 게임산업 ㄱㅇㄷㅅㅁㅁㅇㄷㅇ"},{"id":"5-3-1","code":"5-3-1","label":"게임기 도소매업","level":3,"parent":"5-3","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-3","label":"게임 도소매 및 임대업"},{"id":"5-3-1","label":"게임기 도소매업"}],"cho":"ㄱㅇㄱㄷㅅㅁㅇ","search":"5-3-1 게임기 도소매업 게임산업 ㄱㅇㄱㄷㅅㅁㅇ"},{"id":"5-3-2","code":"5-3-2","label":"게임 소프트웨어 도소매업","level":3,"parent":"5-3","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-3","label":"게임 도소매 및 임대업"},{"id":"5-3-2","label":"게임 소프트웨어 도소매업"}],"cho":"ㄱㅇㅅㅍㅌㅇㅇㄷㅅㅁㅇ","search":"5-3-2 게임 소프트웨어 도소매업 게임산업 ㄱㅇㅅㅍㅌㅇㅇㄷㅅㅁㅇ"},{"id":"5-3-3","code":"5-3-3","label":"게임기 임대업","level":3,"parent":"5-3","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-3","label":"게임 도소매 및 임대업"},{"id":"5-3-3","label":"게임기 임대업"}],"cho":"ㄱㅇㄱㅇㄷㅇ","search":"5-3-3 게임기 임대업 게임산업 ㄱㅇㄱㅇㄷㅇ"},{"id":"5-3-4","code":"5-3-4","label":"게임 소프트웨어 임대업","level":3,"parent":"5-3","branch":"5","children":[],"childCount":0,"descendantCount":0,"branchLabel":"게임산업","path":[{"id":"5","label":"게임산업"},{"id":"5-3","label":"게임 도소매 및 임대업"},{"id":"5-3-4","label":"게임 소프트웨어 임대업"}],"cho":"ㄱㅇㅅㅍㅌㅇㅇㅇㄷㅇ","search":"5-3-4 게임 소프트웨어 임대업 게임산업 ㄱㅇㅅㅍㅌㅇㅇㅇㄷㅇ"},{"id":"6","code":"6","label":"애니메이션산업","level":1,"parent":null,"branch":"6","children":["6-1","6-2","6-3"],"childCount":3,"descendantCount":8,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"}],"cho":"ㅇㄴㅁㅇㅅㅅㅇ","search":"6 애니메이션산업 애니메이션산업 ㅇㄴㅁㅇㅅㅅㅇ"},{"id":"6-1","code":"6-1","label":"애니메이션 제작업","level":2,"parent":"6","branch":"6","children":["6-1-1","6-1-2","6-1-3"],"childCount":3,"descendantCount":3,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-1","label":"애니메이션 제작업"}],"cho":"ㅇㄴㅁㅇㅅㅈㅈㅇ","search":"6-1 애니메이션 제작업 애니메이션산업 ㅇㄴㅁㅇㅅㅈㅈㅇ"},{"id":"6-1-1","code":"6-1-1","label":"애니메이션 창작 제작업","level":3,"parent":"6-1","branch":"6","children":[],"childCount":0,"descendantCount":0,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-1","label":"애니메이션 제작업"},{"id":"6-1-1","label":"애니메이션 창작 제작업"}],"cho":"ㅇㄴㅁㅇㅅㅊㅈㅈㅈㅇ","search":"6-1-1 애니메이션 창작 제작업 애니메이션산업 ㅇㄴㅁㅇㅅㅊㅈㅈㅈㅇ"},{"id":"6-1-2","code":"6-1-2","label":"애니메이션 하청 제작업","level":3,"parent":"6-1","branch":"6","children":[],"childCount":0,"descendantCount":0,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-1","label":"애니메이션 제작업"},{"id":"6-1-2","label":"애니메이션 하청 제작업"}],"cho":"ㅇㄴㅁㅇㅅㅎㅊㅈㅈㅇ","search":"6-1-2 애니메이션 하청 제작업 애니메이션산업 ㅇㄴㅁㅇㅅㅎㅊㅈㅈㅇ"},{"id":"6-1-3","code":"6-1-3","label":"온라인(인터넷·모바일) 애니메이션 제작업","level":3,"parent":"6-1","branch":"6","children":[],"childCount":0,"descendantCount":0,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-1","label":"애니메이션 제작업"},{"id":"6-1-3","label":"온라인(인터넷·모바일) 애니메이션 제작업"}],"cho":"ㅇㄹㅇ(ㅇㅌㄴ·ㅁㅂㅇ)ㅇㄴㅁㅇㅅㅈㅈㅇ","search":"6-1-3 온라인(인터넷·모바일) 애니메이션 제작업 애니메이션산업 ㅇㄹㅇ(ㅇㅌㄴ·ㅁㅂㅇ)ㅇㄴㅁㅇㅅㅈㅈㅇ"},{"id":"6-2","code":"6-2","label":"애니메이션 유통 및 배급업","level":2,"parent":"6","branch":"6","children":["6-2-0"],"childCount":1,"descendantCount":1,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-2","label":"애니메이션 유통 및 배급업"}],"cho":"ㅇㄴㅁㅇㅅㅇㅌㅁㅂㄱㅇ","search":"6-2 애니메이션 유통 및 배급업 애니메이션산업 ㅇㄴㅁㅇㅅㅇㅌㅁㅂㄱㅇ"},{"id":"6-2-0","code":"6-2-0","label":"애니메이션 유통, 배급 및 홍보업","level":3,"parent":"6-2","branch":"6","children":[],"childCount":0,"descendantCount":0,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-2","label":"애니메이션 유통 및 배급업"},{"id":"6-2-0","label":"애니메이션 유통, 배급 및 홍보업"}],"cho":"ㅇㄴㅁㅇㅅㅇㅌ,ㅂㄱㅁㅎㅂㅇ","search":"6-2-0 애니메이션 유통, 배급 및 홍보업 애니메이션산업 ㅇㄴㅁㅇㅅㅇㅌ,ㅂㄱㅁㅎㅂㅇ"},{"id":"6-3","code":"6-3","label":"온라인 애니메이션 유통업","level":2,"parent":"6","branch":"6","children":["6-3-0"],"childCount":1,"descendantCount":1,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-3","label":"온라인 애니메이션 유통업"}],"cho":"ㅇㄹㅇㅇㄴㅁㅇㅅㅇㅌㅇ","search":"6-3 온라인 애니메이션 유통업 애니메이션산업 ㅇㄹㅇㅇㄴㅁㅇㅅㅇㅌㅇ"},{"id":"6-3-0","code":"6-3-0","label":"온라인 애니메이션 서비스업(인터넷, 모바일)","level":3,"parent":"6-3","branch":"6","children":[],"childCount":0,"descendantCount":0,"branchLabel":"애니메이션산업","path":[{"id":"6","label":"애니메이션산업"},{"id":"6-3","label":"온라인 애니메이션 유통업"},{"id":"6-3-0","label":"온라인 애니메이션 서비스업(인터넷, 모바일)"}],"cho":"ㅇㄹㅇㅇㄴㅁㅇㅅㅅㅂㅅㅇ(ㅇㅌㄴ,ㅁㅂㅇ)","search":"6-3-0 온라인 애니메이션 서비스업(인터넷, 모바일) 애니메이션산업 ㅇㄹㅇㅇㄴㅁㅇㅅㅅㅂㅅㅇ(ㅇㅌㄴ,ㅁㅂㅇ)"},{"id":"7","code":"7","label":"방송 및 영상산업","level":1,"parent":null,"branch":"7","children":["7-1","7-2","7-3","7-4","7-5","7-6","7-7","7-8","7-9"],"childCount":9,"descendantCount":28,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"}],"cho":"ㅂㅅㅁㅇㅅㅅㅇ","search":"7 방송 및 영상산업 방송 및 영상산업 ㅂㅅㅁㅇㅅㅅㅇ"},{"id":"7-1","code":"7-1","label":"지상파 방송","level":2,"parent":"7","branch":"7","children":["7-1-1","7-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-1","label":"지상파 방송"}],"cho":"ㅈㅅㅍㅂㅅ","search":"7-1 지상파 방송 방송 및 영상산업 ㅈㅅㅍㅂㅅ"},{"id":"7-1-1","code":"7-1-1","label":"지상파방송사업자","level":3,"parent":"7-1","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-1","label":"지상파 방송"},{"id":"7-1-1","label":"지상파방송사업자"}],"cho":"ㅈㅅㅍㅂㅅㅅㅇㅈ","search":"7-1-1 지상파방송사업자 방송 및 영상산업 ㅈㅅㅍㅂㅅㅅㅇㅈ"},{"id":"7-1-2","code":"7-1-2","label":"지상파 이동멀티미디어 방송 사업자","level":3,"parent":"7-1","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-1","label":"지상파 방송"},{"id":"7-1-2","label":"지상파 이동멀티미디어 방송 사업자"}],"cho":"ㅈㅅㅍㅇㄷㅁㅌㅁㄷㅇㅂㅅㅅㅇㅈ","search":"7-1-2 지상파 이동멀티미디어 방송 사업자 방송 및 영상산업 ㅈㅅㅍㅇㄷㅁㅌㅁㄷㅇㅂㅅㅅㅇㅈ"},{"id":"7-2","code":"7-2","label":"유선방송","level":2,"parent":"7","branch":"7","children":["7-2-1","7-2-2","7-2-3"],"childCount":3,"descendantCount":3,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-2","label":"유선방송"}],"cho":"ㅇㅅㅂㅅ","search":"7-2 유선방송 방송 및 영상산업 ㅇㅅㅂㅅ"},{"id":"7-2-1","code":"7-2-1","label":"종합유선방송 사업자","level":3,"parent":"7-2","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-2","label":"유선방송"},{"id":"7-2-1","label":"종합유선방송 사업자"}],"cho":"ㅈㅎㅇㅅㅂㅅㅅㅇㅈ","search":"7-2-1 종합유선방송 사업자 방송 및 영상산업 ㅈㅎㅇㅅㅂㅅㅅㅇㅈ"},{"id":"7-2-2","code":"7-2-2","label":"중계유선방송 사업자","level":3,"parent":"7-2","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-2","label":"유선방송"},{"id":"7-2-2","label":"중계유선방송 사업자"}],"cho":"ㅈㄱㅇㅅㅂㅅㅅㅇㅈ","search":"7-2-2 중계유선방송 사업자 방송 및 영상산업 ㅈㄱㅇㅅㅂㅅㅅㅇㅈ"},{"id":"7-2-3","code":"7-2-3","label":"음악유선방송 사업자","level":3,"parent":"7-2","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-2","label":"유선방송"},{"id":"7-2-3","label":"음악유선방송 사업자"}],"cho":"ㅇㅇㅇㅅㅂㅅㅅㅇㅈ","search":"7-2-3 음악유선방송 사업자 방송 및 영상산업 ㅇㅇㅇㅅㅂㅅㅅㅇㅈ"},{"id":"7-3","code":"7-3","label":"위성방송","level":2,"parent":"7","branch":"7","children":["7-3-1","7-3-2"],"childCount":2,"descendantCount":2,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-3","label":"위성방송"}],"cho":"ㅇㅅㅂㅅ","search":"7-3 위성방송 방송 및 영상산업 ㅇㅅㅂㅅ"},{"id":"7-3-1","code":"7-3-1","label":"일반위성방송 사업자","level":3,"parent":"7-3","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-3","label":"위성방송"},{"id":"7-3-1","label":"일반위성방송 사업자"}],"cho":"ㅇㅂㅇㅅㅂㅅㅅㅇㅈ","search":"7-3-1 일반위성방송 사업자 방송 및 영상산업 ㅇㅂㅇㅅㅂㅅㅅㅇㅈ"},{"id":"7-3-2","code":"7-3-2","label":"위성이동멀티미디어방송 사업자","level":3,"parent":"7-3","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-3","label":"위성방송"},{"id":"7-3-2","label":"위성이동멀티미디어방송 사업자"}],"cho":"ㅇㅅㅇㄷㅁㅌㅁㄷㅇㅂㅅㅅㅇㅈ","search":"7-3-2 위성이동멀티미디어방송 사업자 방송 및 영상산업 ㅇㅅㅇㄷㅁㅌㅁㄷㅇㅂㅅㅅㅇㅈ"},{"id":"7-4","code":"7-4","label":"방송채널사용사업","level":2,"parent":"7","branch":"7","children":["7-4-0"],"childCount":1,"descendantCount":1,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-4","label":"방송채널사용사업"}],"cho":"ㅂㅅㅊㄴㅅㅇㅅㅇ","search":"7-4 방송채널사용사업 방송 및 영상산업 ㅂㅅㅊㄴㅅㅇㅅㅇ"},{"id":"7-4-0","code":"7-4-0","label":"방송채널사용 사업자","level":3,"parent":"7-4","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-4","label":"방송채널사용사업"},{"id":"7-4-0","label":"방송채널사용 사업자"}],"cho":"ㅂㅅㅊㄴㅅㅇㅅㅇㅈ","search":"7-4-0 방송채널사용 사업자 방송 및 영상산업 ㅂㅅㅊㄴㅅㅇㅅㅇㅈ"},{"id":"7-5","code":"7-5","label":"전광판방송","level":2,"parent":"7","branch":"7","children":["7-5-0"],"childCount":1,"descendantCount":1,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-5","label":"전광판방송"}],"cho":"ㅈㄱㅍㅂㅅ","search":"7-5 전광판방송 방송 및 영상산업 ㅈㄱㅍㅂㅅ"},{"id":"7-5-0","code":"7-5-0","label":"전광판방송 사업자","level":3,"parent":"7-5","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-5","label":"전광판방송"},{"id":"7-5-0","label":"전광판방송 사업자"}],"cho":"ㅈㄱㅍㅂㅅㅅㅇㅈ","search":"7-5-0 전광판방송 사업자 방송 및 영상산업 ㅈㄱㅍㅂㅅㅅㅇㅈ"},{"id":"7-6","code":"7-6","label":"방송영상물제작업","level":2,"parent":"7","branch":"7","children":["7-6-1","7-6-2"],"childCount":2,"descendantCount":2,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-6","label":"방송영상물제작업"}],"cho":"ㅂㅅㅇㅅㅁㅈㅈㅇ","search":"7-6 방송영상물제작업 방송 및 영상산업 ㅂㅅㅇㅅㅁㅈㅈㅇ"},{"id":"7-6-1","code":"7-6-1","label":"방송영상독립제작사","level":3,"parent":"7-6","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-6","label":"방송영상물제작업"},{"id":"7-6-1","label":"방송영상독립제작사"}],"cho":"ㅂㅅㅇㅅㄷㄹㅈㅈㅅ","search":"7-6-1 방송영상독립제작사 방송 및 영상산업 ㅂㅅㅇㅅㄷㄹㅈㅈㅅ"},{"id":"7-6-2","code":"7-6-2","label":"기타독립영상창작","level":3,"parent":"7-6","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-6","label":"방송영상물제작업"},{"id":"7-6-2","label":"기타독립영상창작"}],"cho":"ㄱㅌㄷㄹㅇㅅㅊㅈ","search":"7-6-2 기타독립영상창작 방송 및 영상산업 ㄱㅌㄷㄹㅇㅅㅊㅈ"},{"id":"7-7","code":"7-7","label":"인터넷 영상물 제공업","level":2,"parent":"7","branch":"7","children":["7-7-1","7-7-2","7-7-3"],"childCount":3,"descendantCount":3,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-7","label":"인터넷 영상물 제공업"}],"cho":"ㅇㅌㄴㅇㅅㅁㅈㄱㅇ","search":"7-7 인터넷 영상물 제공업 방송 및 영상산업 ㅇㅌㄴㅇㅅㅁㅈㄱㅇ"},{"id":"7-7-1","code":"7-7-1","label":"인터넷 영상물 서비스업","level":3,"parent":"7-7","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-7","label":"인터넷 영상물 제공업"},{"id":"7-7-1","label":"인터넷 영상물 서비스업"}],"cho":"ㅇㅌㄴㅇㅅㅁㅅㅂㅅㅇ","search":"7-7-1 인터넷 영상물 서비스업 방송 및 영상산업 ㅇㅌㄴㅇㅅㅁㅅㅂㅅㅇ"},{"id":"7-7-2","code":"7-7-2","label":"인터넷TV 방송업","level":3,"parent":"7-7","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-7","label":"인터넷 영상물 제공업"},{"id":"7-7-2","label":"인터넷TV 방송업"}],"cho":"ㅇㅌㄴtvㅂㅅㅇ","search":"7-7-2 인터넷tv 방송업 방송 및 영상산업 ㅇㅌㄴtvㅂㅅㅇ"},{"id":"7-7-3","code":"7-7-3","label":"인터넷프로토콜TV(IPTV)","level":3,"parent":"7-7","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-7","label":"인터넷 영상물 제공업"},{"id":"7-7-3","label":"인터넷프로토콜TV(IPTV)"}],"cho":"ㅇㅌㄴㅍㄹㅌㅋtv(iptv)","search":"7-7-3 인터넷프로토콜tv(iptv) 방송 및 영상산업 ㅇㅌㄴㅍㄹㅌㅋtv(iptv)"},{"id":"7-8","code":"7-8","label":"방송영상물 배급 및 중개업","level":2,"parent":"7","branch":"7","children":["7-8-1","7-8-2","7-8-3"],"childCount":3,"descendantCount":3,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-8","label":"방송영상물 배급 및 중개업"}],"cho":"ㅂㅅㅇㅅㅁㅂㄱㅁㅈㄱㅇ","search":"7-8 방송영상물 배급 및 중개업 방송 및 영상산업 ㅂㅅㅇㅅㅁㅂㄱㅁㅈㄱㅇ"},{"id":"7-8-1","code":"7-8-1","label":"방송영상물 배급업","level":3,"parent":"7-8","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-8","label":"방송영상물 배급 및 중개업"},{"id":"7-8-1","label":"방송영상물 배급업"}],"cho":"ㅂㅅㅇㅅㅁㅂㄱㅇ","search":"7-8-1 방송영상물 배급업 방송 및 영상산업 ㅂㅅㅇㅅㅁㅂㄱㅇ"},{"id":"7-8-2","code":"7-8-2","label":"방송영상물 중개업","level":3,"parent":"7-8","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-8","label":"방송영상물 배급 및 중개업"},{"id":"7-8-2","label":"방송영상물 중개업"}],"cho":"ㅂㅅㅇㅅㅁㅈㄱㅇ","search":"7-8-2 방송영상물 중개업 방송 및 영상산업 ㅂㅅㅇㅅㅁㅈㄱㅇ"},{"id":"7-8-3","code":"7-8-3","label":"기타 방송영상물 서비스업","level":3,"parent":"7-8","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-8","label":"방송영상물 배급 및 중개업"},{"id":"7-8-3","label":"기타 방송영상물 서비스업"}],"cho":"ㄱㅌㅂㅅㅇㅅㅁㅅㅂㅅㅇ","search":"7-8-3 기타 방송영상물 서비스업 방송 및 영상산업 ㄱㅌㅂㅅㅇㅅㅁㅅㅂㅅㅇ"},{"id":"7-9","code":"7-9","label":"방송관련 단체","level":2,"parent":"7","branch":"7","children":["7-9-1","7-9-2"],"childCount":2,"descendantCount":2,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-9","label":"방송관련 단체"}],"cho":"ㅂㅅㄱㄹㄷㅊ","search":"7-9 방송관련 단체 방송 및 영상산업 ㅂㅅㄱㄹㄷㅊ"},{"id":"7-9-1","code":"7-9-1","label":"방송영상산업 직능단체","level":3,"parent":"7-9","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-9","label":"방송관련 단체"},{"id":"7-9-1","label":"방송영상산업 직능단체"}],"cho":"ㅂㅅㅇㅅㅅㅇㅈㄴㄷㅊ","search":"7-9-1 방송영상산업 직능단체 방송 및 영상산업 ㅂㅅㅇㅅㅅㅇㅈㄴㄷㅊ"},{"id":"7-9-2","code":"7-9-2","label":"방송영상산업 전문인력 양성기관","level":3,"parent":"7-9","branch":"7","children":[],"childCount":0,"descendantCount":0,"branchLabel":"방송 및 영상산업","path":[{"id":"7","label":"방송 및 영상산업"},{"id":"7-9","label":"방송관련 단체"},{"id":"7-9-2","label":"방송영상산업 전문인력 양성기관"}],"cho":"ㅂㅅㅇㅅㅅㅇㅈㅁㅇㄹㅇㅅㄱㄱ","search":"7-9-2 방송영상산업 전문인력 양성기관 방송 및 영상산업 ㅂㅅㅇㅅㅅㅇㅈㅁㅇㄹㅇㅅㄱㄱ"},{"id":"8","code":"8","label":"광고산업","level":1,"parent":null,"branch":"8","children":["8-1","8-2","8-3","8-4","8-5","8-6"],"childCount":6,"descendantCount":24,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"}],"cho":"ㄱㄱㅅㅇ","search":"8 광고산업 광고산업 ㄱㄱㅅㅇ"},{"id":"8-1","code":"8-1","label":"광고(종합)대행업","level":2,"parent":"8","branch":"8","children":["8-1-1","8-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-1","label":"광고(종합)대행업"}],"cho":"ㄱㄱ(ㅈㅎ)ㄷㅎㅇ","search":"8-1 광고(종합)대행업 광고산업 ㄱㄱ(ㅈㅎ)ㄷㅎㅇ"},{"id":"8-1-1","code":"8-1-1","label":"광고대행·매체대행","level":3,"parent":"8-1","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-1","label":"광고(종합)대행업"},{"id":"8-1-1","label":"광고대행·매체대행"}],"cho":"ㄱㄱㄷㅎ·ㅁㅊㄷㅎ","search":"8-1-1 광고대행·매체대행 광고산업 ㄱㄱㄷㅎ·ㅁㅊㄷㅎ"},{"id":"8-1-2","code":"8-1-2","label":"광고기획·전략대행","level":3,"parent":"8-1","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-1","label":"광고(종합)대행업"},{"id":"8-1-2","label":"광고기획·전략대행"}],"cho":"ㄱㄱㄱㅎ·ㅈㄹㄷㅎ","search":"8-1-2 광고기획·전략대행 광고산업 ㄱㄱㄱㅎ·ㅈㄹㄷㅎ"},{"id":"8-2","code":"8-2","label":"광고 제작업","level":2,"parent":"8","branch":"8","children":["8-2-1","8-2-2","8-2-3","8-2-4"],"childCount":4,"descendantCount":4,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-2","label":"광고 제작업"}],"cho":"ㄱㄱㅈㅈㅇ","search":"8-2 광고 제작업 광고산업 ㄱㄱㅈㅈㅇ"},{"id":"8-2-1","code":"8-2-1","label":"CM·영상·카피·그래픽 제작","level":3,"parent":"8-2","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-2","label":"광고 제작업"},{"id":"8-2-1","label":"CM·영상·카피·그래픽 제작"}],"cho":"cm·ㅇㅅ·ㅋㅍ·ㄱㄹㅍㅈㅈ","search":"8-2-1 cm·영상·카피·그래픽 제작 광고산업 cm·ㅇㅅ·ㅋㅍ·ㄱㄹㅍㅈㅈ"},{"id":"8-2-2","code":"8-2-2","label":"온라인 광고제작","level":3,"parent":"8-2","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-2","label":"광고 제작업"},{"id":"8-2-2","label":"온라인 광고제작"}],"cho":"ㅇㄹㅇㄱㄱㅈㅈ","search":"8-2-2 온라인 광고제작 광고산업 ㅇㄹㅇㄱㄱㅈㅈ"},{"id":"8-2-3","code":"8-2-3","label":"광고사진 스튜디오","level":3,"parent":"8-2","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-2","label":"광고 제작업"},{"id":"8-2-3","label":"광고사진 스튜디오"}],"cho":"ㄱㄱㅅㅈㅅㅌㄷㅇ","search":"8-2-3 광고사진 스튜디오 광고산업 ㄱㄱㅅㅈㅅㅌㄷㅇ"},{"id":"8-2-4","code":"8-2-4","label":"CI(Commercial Identity) 제작","level":3,"parent":"8-2","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-2","label":"광고 제작업"},{"id":"8-2-4","label":"CI(Commercial Identity) 제작"}],"cho":"ci(commercialidentity)ㅈㅈ","search":"8-2-4 ci(commercial identity) 제작 광고산업 ci(commercialidentity)ㅈㅈ"},{"id":"8-3","code":"8-3","label":"광고 서비스업","level":2,"parent":"8","branch":"8","children":["8-3-1","8-3-2","8-3-3","8-3-4","8-3-5"],"childCount":5,"descendantCount":5,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-3","label":"광고 서비스업"}],"cho":"ㄱㄱㅅㅂㅅㅇ","search":"8-3 광고 서비스업 광고산업 ㄱㄱㅅㅂㅅㅇ"},{"id":"8-3-1","code":"8-3-1","label":"마케팅·리서치","level":3,"parent":"8-3","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-3","label":"광고 서비스업"},{"id":"8-3-1","label":"마케팅·리서치"}],"cho":"ㅁㅋㅌ·ㄹㅅㅊ","search":"8-3-1 마케팅·리서치 광고산업 ㅁㅋㅌ·ㄹㅅㅊ"},{"id":"8-3-2","code":"8-3-2","label":"PR(Public Relations)","level":3,"parent":"8-3","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-3","label":"광고 서비스업"},{"id":"8-3-2","label":"PR(Public Relations)"}],"cho":"pr(publicrelations)","search":"8-3-2 pr(public relations) 광고산업 pr(publicrelations)"},{"id":"8-3-3","code":"8-3-3","label":"SP(Sales Promotion)","level":3,"parent":"8-3","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-3","label":"광고 서비스업"},{"id":"8-3-3","label":"SP(Sales Promotion)"}],"cho":"sp(salespromotion)","search":"8-3-3 sp(sales promotion) 광고산업 sp(salespromotion)"},{"id":"8-3-4","code":"8-3-4","label":"광고 이벤트","level":3,"parent":"8-3","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-3","label":"광고 서비스업"},{"id":"8-3-4","label":"광고 이벤트"}],"cho":"ㄱㄱㅇㅂㅌ","search":"8-3-4 광고 이벤트 광고산업 ㄱㄱㅇㅂㅌ"},{"id":"8-3-5","code":"8-3-5","label":"광고 공간 디자인","level":3,"parent":"8-3","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-3","label":"광고 서비스업"},{"id":"8-3-5","label":"광고 공간 디자인"}],"cho":"ㄱㄱㄱㄱㄷㅈㅇ","search":"8-3-5 광고 공간 디자인 광고산업 ㄱㄱㄱㄱㄷㅈㅇ"},{"id":"8-4","code":"8-4","label":"광고 인쇄업","level":2,"parent":"8","branch":"8","children":["8-4-1","8-4-2"],"childCount":2,"descendantCount":2,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-4","label":"광고 인쇄업"}],"cho":"ㄱㄱㅇㅅㅇ","search":"8-4 광고 인쇄업 광고산업 ㄱㄱㅇㅅㅇ"},{"id":"8-4-1","code":"8-4-1","label":"광고 인쇄","level":3,"parent":"8-4","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-4","label":"광고 인쇄업"},{"id":"8-4-1","label":"광고 인쇄"}],"cho":"ㄱㄱㅇㅅ","search":"8-4-1 광고 인쇄 광고산업 ㄱㄱㅇㅅ"},{"id":"8-4-2","code":"8-4-2","label":"광고 제판","level":3,"parent":"8-4","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-4","label":"광고 인쇄업"},{"id":"8-4-2","label":"광고 제판"}],"cho":"ㄱㄱㅈㅍ","search":"8-4-2 광고 제판 광고산업 ㄱㄱㅈㅍ"},{"id":"8-5","code":"8-5","label":"온라인 광고대행업","level":2,"parent":"8","branch":"8","children":["8-5-1","8-5-2","8-5-3"],"childCount":3,"descendantCount":3,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-5","label":"온라인 광고대행업"}],"cho":"ㅇㄹㅇㄱㄱㄷㅎㅇ","search":"8-5 온라인 광고대행업 광고산업 ㅇㄹㅇㄱㄱㄷㅎㅇ"},{"id":"8-5-1","code":"8-5-1","label":"온라인 광고대행·매체대행","level":3,"parent":"8-5","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-5","label":"온라인 광고대행업"},{"id":"8-5-1","label":"온라인 광고대행·매체대행"}],"cho":"ㅇㄹㅇㄱㄱㄷㅎ·ㅁㅊㄷㅎ","search":"8-5-1 온라인 광고대행·매체대행 광고산업 ㅇㄹㅇㄱㄱㄷㅎ·ㅁㅊㄷㅎ"},{"id":"8-5-2","code":"8-5-2","label":"온라인 광고기획·전략대행","level":3,"parent":"8-5","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-5","label":"온라인 광고대행업"},{"id":"8-5-2","label":"온라인 광고기획·전략대행"}],"cho":"ㅇㄹㅇㄱㄱㄱㅎ·ㅈㄹㄷㅎ","search":"8-5-2 온라인 광고기획·전략대행 광고산업 ㅇㄹㅇㄱㄱㄱㅎ·ㅈㄹㄷㅎ"},{"id":"8-5-3","code":"8-5-3","label":"온라인 광고제작대행","level":3,"parent":"8-5","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-5","label":"온라인 광고대행업"},{"id":"8-5-3","label":"온라인 광고제작대행"}],"cho":"ㅇㄹㅇㄱㄱㅈㅈㄷㅎ","search":"8-5-3 온라인 광고제작대행 광고산업 ㅇㄹㅇㄱㄱㅈㅈㄷㅎ"},{"id":"8-6","code":"8-6","label":"기타 광고업","level":2,"parent":"8","branch":"8","children":["8-6-1","8-6-2"],"childCount":2,"descendantCount":2,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-6","label":"기타 광고업"}],"cho":"ㄱㅌㄱㄱㅇ","search":"8-6 기타 광고업 광고산업 ㄱㅌㄱㄱㅇ"},{"id":"8-6-1","code":"8-6-1","label":"광고물 기획·편집","level":3,"parent":"8-6","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-6","label":"기타 광고업"},{"id":"8-6-1","label":"광고물 기획·편집"}],"cho":"ㄱㄱㅁㄱㅎ·ㅍㅈ","search":"8-6-1 광고물 기획·편집 광고산업 ㄱㄱㅁㄱㅎ·ㅍㅈ"},{"id":"8-6-2","code":"8-6-2","label":"기타(장비취급 등)","level":3,"parent":"8-6","branch":"8","children":[],"childCount":0,"descendantCount":0,"branchLabel":"광고산업","path":[{"id":"8","label":"광고산업"},{"id":"8-6","label":"기타 광고업"},{"id":"8-6-2","label":"기타(장비취급 등)"}],"cho":"ㄱㅌ(ㅈㅂㅊㄱㄷ)","search":"8-6-2 기타(장비취급 등) 광고산업 ㄱㅌ(ㅈㅂㅊㄱㄷ)"},{"id":"9","code":"9","label":"캐릭터산업","level":1,"parent":null,"branch":"9","children":["9-1","9-2","9-3","9-4"],"childCount":4,"descendantCount":10,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"}],"cho":"ㅋㄹㅌㅅㅇ","search":"9 캐릭터산업 캐릭터산업 ㅋㄹㅌㅅㅇ"},{"id":"9-1","code":"9-1","label":"캐릭터 제작업","level":2,"parent":"9","branch":"9","children":["9-1-1","9-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-1","label":"캐릭터 제작업"}],"cho":"ㅋㄹㅌㅈㅈㅇ","search":"9-1 캐릭터 제작업 캐릭터산업 ㅋㄹㅌㅈㅈㅇ"},{"id":"9-1-1","code":"9-1-1","label":"캐릭터 개발 및 라이선스업","level":3,"parent":"9-1","branch":"9","children":[],"childCount":0,"descendantCount":0,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-1","label":"캐릭터 제작업"},{"id":"9-1-1","label":"캐릭터 개발 및 라이선스업"}],"cho":"ㅋㄹㅌㄱㅂㅁㄹㅇㅅㅅㅇ","search":"9-1-1 캐릭터 개발 및 라이선스업 캐릭터산업 ㅋㄹㅌㄱㅂㅁㄹㅇㅅㅅㅇ"},{"id":"9-1-2","code":"9-1-2","label":"캐릭터상품 제조업","level":3,"parent":"9-1","branch":"9","children":[],"childCount":0,"descendantCount":0,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-1","label":"캐릭터 제작업"},{"id":"9-1-2","label":"캐릭터상품 제조업"}],"cho":"ㅋㄹㅌㅅㅍㅈㅈㅇ","search":"9-1-2 캐릭터상품 제조업 캐릭터산업 ㅋㄹㅌㅅㅍㅈㅈㅇ"},{"id":"9-2","code":"9-2","label":"캐릭터 상품 유통업","level":2,"parent":"9","branch":"9","children":["9-2-1","9-2-2"],"childCount":2,"descendantCount":2,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-2","label":"캐릭터 상품 유통업"}],"cho":"ㅋㄹㅌㅅㅍㅇㅌㅇ","search":"9-2 캐릭터 상품 유통업 캐릭터산업 ㅋㄹㅌㅅㅍㅇㅌㅇ"},{"id":"9-2-1","code":"9-2-1","label":"캐릭터상품 도매업","level":3,"parent":"9-2","branch":"9","children":[],"childCount":0,"descendantCount":0,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-2","label":"캐릭터 상품 유통업"},{"id":"9-2-1","label":"캐릭터상품 도매업"}],"cho":"ㅋㄹㅌㅅㅍㄷㅁㅇ","search":"9-2-1 캐릭터상품 도매업 캐릭터산업 ㅋㄹㅌㅅㅍㄷㅁㅇ"},{"id":"9-2-2","code":"9-2-2","label":"캐릭터상품 소매업","level":3,"parent":"9-2","branch":"9","children":[],"childCount":0,"descendantCount":0,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-2","label":"캐릭터 상품 유통업"},{"id":"9-2-2","label":"캐릭터상품 소매업"}],"cho":"ㅋㄹㅌㅅㅍㅅㅁㅇ","search":"9-2-2 캐릭터상품 소매업 캐릭터산업 ㅋㄹㅌㅅㅍㅅㅁㅇ"},{"id":"9-3","code":"9-3","label":"캐릭터 놀이시설 운영업","level":2,"parent":"9","branch":"9","children":["9-3-0"],"childCount":1,"descendantCount":1,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-3","label":"캐릭터 놀이시설 운영업"}],"cho":"ㅋㄹㅌㄴㅇㅅㅅㅇㅇㅇ","search":"9-3 캐릭터 놀이시설 운영업 캐릭터산업 ㅋㄹㅌㄴㅇㅅㅅㅇㅇㅇ"},{"id":"9-3-0","code":"9-3-0","label":"캐릭터 놀이시설 운영업","level":3,"parent":"9-3","branch":"9","children":[],"childCount":0,"descendantCount":0,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-3","label":"캐릭터 놀이시설 운영업"},{"id":"9-3-0","label":"캐릭터 놀이시설 운영업"}],"cho":"ㅋㄹㅌㄴㅇㅅㅅㅇㅇㅇ","search":"9-3-0 캐릭터 놀이시설 운영업 캐릭터산업 ㅋㄹㅌㄴㅇㅅㅅㅇㅇㅇ"},{"id":"9-4","code":"9-4","label":"캐릭터 상품 온라인 유통업","level":2,"parent":"9","branch":"9","children":["9-4-0"],"childCount":1,"descendantCount":1,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-4","label":"캐릭터 상품 온라인 유통업"}],"cho":"ㅋㄹㅌㅅㅍㅇㄹㅇㅇㅌㅇ","search":"9-4 캐릭터 상품 온라인 유통업 캐릭터산업 ㅋㄹㅌㅅㅍㅇㄹㅇㅇㅌㅇ"},{"id":"9-4-0","code":"9-4-0","label":"인터넷 및 모바일 캐릭터 서비스업","level":3,"parent":"9-4","branch":"9","children":[],"childCount":0,"descendantCount":0,"branchLabel":"캐릭터산업","path":[{"id":"9","label":"캐릭터산업"},{"id":"9-4","label":"캐릭터 상품 온라인 유통업"},{"id":"9-4-0","label":"인터넷 및 모바일 캐릭터 서비스업"}],"cho":"ㅇㅌㄴㅁㅁㅂㅇㅋㄹㅌㅅㅂㅅㅇ","search":"9-4-0 인터넷 및 모바일 캐릭터 서비스업 캐릭터산업 ㅇㅌㄴㅁㅁㅂㅇㅋㄹㅌㅅㅂㅅㅇ"},{"id":"10","code":"10","label":"지식정보산업","level":1,"parent":null,"branch":"10","children":["10-1","10-2","10-3","10-4"],"childCount":4,"descendantCount":14,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"}],"cho":"ㅈㅅㅈㅂㅅㅇ","search":"10 지식정보산업 지식정보산업 ㅈㅅㅈㅂㅅㅇ"},{"id":"10-1","code":"10-1","label":"e-learning","level":2,"parent":"10","branch":"10","children":["10-1-1","10-1-2","10-1-3","10-1-4"],"childCount":4,"descendantCount":4,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-1","label":"e-learning"}],"cho":"e-learning","search":"10-1 e-learning 지식정보산업 e-learning"},{"id":"10-1-1","code":"10-1-1","label":"e-learning 기획업","level":3,"parent":"10-1","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-1","label":"e-learning"},{"id":"10-1-1","label":"e-learning 기획업"}],"cho":"e-learningㄱㅎㅇ","search":"10-1-1 e-learning 기획업 지식정보산업 e-learningㄱㅎㅇ"},{"id":"10-1-2","code":"10-1-2","label":"e-learning 인터넷/모바일 서비스업","level":3,"parent":"10-1","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-1","label":"e-learning"},{"id":"10-1-2","label":"e-learning 인터넷/모바일 서비스업"}],"cho":"e-learningㅇㅌㄴ/ㅁㅂㅇㅅㅂㅅㅇ","search":"10-1-2 e-learning 인터넷/모바일 서비스업 지식정보산업 e-learningㅇㅌㄴ/ㅁㅂㅇㅅㅂㅅㅇ"},{"id":"10-1-3","code":"10-1-3","label":"인터넷/모바일 e-learning 제작 및 제공업(CP)","level":3,"parent":"10-1","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-1","label":"e-learning"},{"id":"10-1-3","label":"인터넷/모바일 e-learning 제작 및 제공업(CP)"}],"cho":"ㅇㅌㄴ/ㅁㅂㅇe-learningㅈㅈㅁㅈㄱㅇ(cp)","search":"10-1-3 인터넷/모바일 e-learning 제작 및 제공업(cp) 지식정보산업 ㅇㅌㄴ/ㅁㅂㅇe-learningㅈㅈㅁㅈㄱㅇ(cp)"},{"id":"10-1-4","code":"10-1-4","label":"에듀테인먼트 기획 및 제작업","level":3,"parent":"10-1","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-1","label":"e-learning"},{"id":"10-1-4","label":"에듀테인먼트 기획 및 제작업"}],"cho":"ㅇㄷㅌㅇㅁㅌㄱㅎㅁㅈㅈㅇ","search":"10-1-4 에듀테인먼트 기획 및 제작업 지식정보산업 ㅇㄷㅌㅇㅁㅌㄱㅎㅁㅈㅈㅇ"},{"id":"10-2","code":"10-2","label":"기타 데이터베이스 및 온라인정보 제공업","level":2,"parent":"10","branch":"10","children":["10-2-0"],"childCount":1,"descendantCount":1,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-2","label":"기타 데이터베이스 및 온라인정보 제공업"}],"cho":"ㄱㅌㄷㅇㅌㅂㅇㅅㅁㅇㄹㅇㅈㅂㅈㄱㅇ","search":"10-2 기타 데이터베이스 및 온라인정보 제공업 지식정보산업 ㄱㅌㄷㅇㅌㅂㅇㅅㅁㅇㄹㅇㅈㅂㅈㄱㅇ"},{"id":"10-2-0","code":"10-2-0","label":"기타 데이터베이스 및 온라인정보 제공업","level":3,"parent":"10-2","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-2","label":"기타 데이터베이스 및 온라인정보 제공업"},{"id":"10-2-0","label":"기타 데이터베이스 및 온라인정보 제공업"}],"cho":"ㄱㅌㄷㅇㅌㅂㅇㅅㅁㅇㄹㅇㅈㅂㅈㄱㅇ","search":"10-2-0 기타 데이터베이스 및 온라인정보 제공업 지식정보산업 ㄱㅌㄷㅇㅌㅂㅇㅅㅁㅇㄹㅇㅈㅂㅈㄱㅇ"},{"id":"10-3","code":"10-3","label":"포털 및 기타 인터넷 정보 매개 서비스업","level":2,"parent":"10","branch":"10","children":["10-3-0"],"childCount":1,"descendantCount":1,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-3","label":"포털 및 기타 인터넷 정보 매개 서비스업"}],"cho":"ㅍㅌㅁㄱㅌㅇㅌㄴㅈㅂㅁㄱㅅㅂㅅㅇ","search":"10-3 포털 및 기타 인터넷 정보 매개 서비스업 지식정보산업 ㅍㅌㅁㄱㅌㅇㅌㄴㅈㅂㅁㄱㅅㅂㅅㅇ"},{"id":"10-3-0","code":"10-3-0","label":"포털 및 기타 인터넷 정보 매개 서비스업","level":3,"parent":"10-3","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-3","label":"포털 및 기타 인터넷 정보 매개 서비스업"},{"id":"10-3-0","label":"포털 및 기타 인터넷 정보 매개 서비스업"}],"cho":"ㅍㅌㅁㄱㅌㅇㅌㄴㅈㅂㅁㄱㅅㅂㅅㅇ","search":"10-3-0 포털 및 기타 인터넷 정보 매개 서비스업 지식정보산업 ㅍㅌㅁㄱㅌㅇㅌㄴㅈㅂㅁㄱㅅㅂㅅㅇ"},{"id":"10-4","code":"10-4","label":"가상세계 및 가상현실업","level":2,"parent":"10","branch":"10","children":["10-4-1","10-4-2","10-4-3","10-4-4"],"childCount":4,"descendantCount":4,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-4","label":"가상세계 및 가상현실업"}],"cho":"ㄱㅅㅅㄱㅁㄱㅅㅎㅅㅇ","search":"10-4 가상세계 및 가상현실업 지식정보산업 ㄱㅅㅅㄱㅁㄱㅅㅎㅅㅇ"},{"id":"10-4-1","code":"10-4-1","label":"스크린골프 시스템 기획 및 제작업","level":3,"parent":"10-4","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-4","label":"가상세계 및 가상현실업"},{"id":"10-4-1","label":"스크린골프 시스템 기획 및 제작업"}],"cho":"ㅅㅋㄹㄱㅍㅅㅅㅌㄱㅎㅁㅈㅈㅇ","search":"10-4-1 스크린골프 시스템 기획 및 제작업 지식정보산업 ㅅㅋㄹㄱㅍㅅㅅㅌㄱㅎㅁㅈㅈㅇ"},{"id":"10-4-2","code":"10-4-2","label":"스크린골프장 운영업","level":3,"parent":"10-4","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-4","label":"가상세계 및 가상현실업"},{"id":"10-4-2","label":"스크린골프장 운영업"}],"cho":"ㅅㅋㄹㄱㅍㅈㅇㅇㅇ","search":"10-4-2 스크린골프장 운영업 지식정보산업 ㅅㅋㄹㄱㅍㅈㅇㅇㅇ"},{"id":"10-4-3","code":"10-4-3","label":"기타 가상세계 및 가상현실 기획 및 제작업","level":3,"parent":"10-4","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-4","label":"가상세계 및 가상현실업"},{"id":"10-4-3","label":"기타 가상세계 및 가상현실 기획 및 제작업"}],"cho":"ㄱㅌㄱㅅㅅㄱㅁㄱㅅㅎㅅㄱㅎㅁㅈㅈㅇ","search":"10-4-3 기타 가상세계 및 가상현실 기획 및 제작업 지식정보산업 ㄱㅌㄱㅅㅅㄱㅁㄱㅅㅎㅅㄱㅎㅁㅈㅈㅇ"},{"id":"10-4-4","code":"10-4-4","label":"기타 가상세계 및 가상현실 서비스업","level":3,"parent":"10-4","branch":"10","children":[],"childCount":0,"descendantCount":0,"branchLabel":"지식정보산업","path":[{"id":"10","label":"지식정보산업"},{"id":"10-4","label":"가상세계 및 가상현실업"},{"id":"10-4-4","label":"기타 가상세계 및 가상현실 서비스업"}],"cho":"ㄱㅌㄱㅅㅅㄱㅁㄱㅅㅎㅅㅅㅂㅅㅇ","search":"10-4-4 기타 가상세계 및 가상현실 서비스업 지식정보산업 ㄱㅌㄱㅅㅅㄱㅁㄱㅅㅎㅅㅅㅂㅅㅇ"},{"id":"11","code":"11","label":"콘텐츠솔루션산업","level":1,"parent":null,"branch":"11","children":["11-1","11-2"],"childCount":2,"descendantCount":10,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"}],"cho":"ㅋㅌㅊㅅㄹㅅㅅㅇ","search":"11 콘텐츠솔루션산업 콘텐츠솔루션산업 ㅋㅌㅊㅅㄹㅅㅅㅇ"},{"id":"11-1","code":"11-1","label":"콘텐츠솔루션업","level":2,"parent":"11","branch":"11","children":["11-1-1","11-1-2","11-1-3","11-1-4","11-1-5","11-1-6","11-1-9"],"childCount":7,"descendantCount":7,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"}],"cho":"ㅋㅌㅊㅅㄹㅅㅇ","search":"11-1 콘텐츠솔루션업 콘텐츠솔루션산업 ㅋㅌㅊㅅㄹㅅㅇ"},{"id":"11-1-1","code":"11-1-1","label":"저작툴","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-1","label":"저작툴"}],"cho":"ㅈㅈㅌ","search":"11-1-1 저작툴 콘텐츠솔루션산업 ㅈㅈㅌ"},{"id":"11-1-2","code":"11-1-2","label":"콘텐츠보호","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-2","label":"콘텐츠보호"}],"cho":"ㅋㅌㅊㅂㅎ","search":"11-1-2 콘텐츠보호 콘텐츠솔루션산업 ㅋㅌㅊㅂㅎ"},{"id":"11-1-3","code":"11-1-3","label":"모바일솔루션","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-3","label":"모바일솔루션"}],"cho":"ㅁㅂㅇㅅㄹㅅ","search":"11-1-3 모바일솔루션 콘텐츠솔루션산업 ㅁㅂㅇㅅㄹㅅ"},{"id":"11-1-4","code":"11-1-4","label":"과금/결제","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-4","label":"과금/결제"}],"cho":"ㄱㄱ/ㄱㅈ","search":"11-1-4 과금/결제 콘텐츠솔루션산업 ㄱㄱ/ㄱㅈ"},{"id":"11-1-5","code":"11-1-5","label":"콘텐츠관리시스템(CMS)","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-5","label":"콘텐츠관리시스템(CMS)"}],"cho":"ㅋㅌㅊㄱㄹㅅㅅㅌ(cms)","search":"11-1-5 콘텐츠관리시스템(cms) 콘텐츠솔루션산업 ㅋㅌㅊㄱㄹㅅㅅㅌ(cms)"},{"id":"11-1-6","code":"11-1-6","label":"콘텐츠전송네트워크(CDN)","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-6","label":"콘텐츠전송네트워크(CDN)"}],"cho":"ㅋㅌㅊㅈㅅㄴㅌㅇㅋ(cdn)","search":"11-1-6 콘텐츠전송네트워크(cdn) 콘텐츠솔루션산업 ㅋㅌㅊㅈㅅㄴㅌㅇㅋ(cdn)"},{"id":"11-1-9","code":"11-1-9","label":"기타 콘텐츠 솔루션","level":3,"parent":"11-1","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-1","label":"콘텐츠솔루션업"},{"id":"11-1-9","label":"기타 콘텐츠 솔루션"}],"cho":"ㄱㅌㅋㅌㅊㅅㄹㅅ","search":"11-1-9 기타 콘텐츠 솔루션 콘텐츠솔루션산업 ㄱㅌㅋㅌㅊㅅㄹㅅ"},{"id":"11-2","code":"11-2","label":"컴퓨터 그래픽스(CG) 제작업","level":2,"parent":"11","branch":"11","children":["11-2-0"],"childCount":1,"descendantCount":1,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-2","label":"컴퓨터 그래픽스(CG) 제작업"}],"cho":"ㅋㅍㅌㄱㄹㅍㅅ(cg)ㅈㅈㅇ","search":"11-2 컴퓨터 그래픽스(cg) 제작업 콘텐츠솔루션산업 ㅋㅍㅌㄱㄹㅍㅅ(cg)ㅈㅈㅇ"},{"id":"11-2-0","code":"11-2-0","label":"컴퓨터 그래픽스(CG) 제작업","level":3,"parent":"11-2","branch":"11","children":[],"childCount":0,"descendantCount":0,"branchLabel":"콘텐츠솔루션산업","path":[{"id":"11","label":"콘텐츠솔루션산업"},{"id":"11-2","label":"컴퓨터 그래픽스(CG) 제작업"},{"id":"11-2-0","label":"컴퓨터 그래픽스(CG) 제작업"}],"cho":"ㅋㅍㅌㄱㄹㅍㅅ(cg)ㅈㅈㅇ","search":"11-2-0 컴퓨터 그래픽스(cg) 제작업 콘텐츠솔루션산업 ㅋㅍㅌㄱㄹㅍㅅ(cg)ㅈㅈㅇ"},{"id":"12","code":"12","label":"공연산업","level":1,"parent":null,"branch":"12","children":["12-1","12-2"],"childCount":2,"descendantCount":6,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"}],"cho":"ㄱㅇㅅㅇ","search":"12 공연산업 공연산업 ㄱㅇㅅㅇ"},{"id":"12-1","code":"12-1","label":"공연업","level":2,"parent":"12","branch":"12","children":["12-1-1","12-1-2"],"childCount":2,"descendantCount":2,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"},{"id":"12-1","label":"공연업"}],"cho":"ㄱㅇㅇ","search":"12-1 공연업 공연산업 ㄱㅇㅇ"},{"id":"12-1-1","code":"12-1-1","label":"공연기획 및 제작업","level":3,"parent":"12-1","branch":"12","children":[],"childCount":0,"descendantCount":0,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"},{"id":"12-1","label":"공연업"},{"id":"12-1-1","label":"공연기획 및 제작업"}],"cho":"ㄱㅇㄱㅎㅁㅈㅈㅇ","search":"12-1-1 공연기획 및 제작업 공연산업 ㄱㅇㄱㅎㅁㅈㅈㅇ"},{"id":"12-1-2","code":"12-1-2","label":"공연시설 운영업","level":3,"parent":"12-1","branch":"12","children":[],"childCount":0,"descendantCount":0,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"},{"id":"12-1","label":"공연업"},{"id":"12-1-2","label":"공연시설 운영업"}],"cho":"ㄱㅇㅅㅅㅇㅇㅇ","search":"12-1-2 공연시설 운영업 공연산업 ㄱㅇㅅㅅㅇㅇㅇ"},{"id":"12-2","code":"12-2","label":"공연 관련 서비스업","level":2,"parent":"12","branch":"12","children":["12-2-1","12-2-2"],"childCount":2,"descendantCount":2,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"},{"id":"12-2","label":"공연 관련 서비스업"}],"cho":"ㄱㅇㄱㄹㅅㅂㅅㅇ","search":"12-2 공연 관련 서비스업 공연산업 ㄱㅇㄱㄹㅅㅂㅅㅇ"},{"id":"12-2-1","code":"12-2-1","label":"공연 및 제작 관련 대리업","level":3,"parent":"12-2","branch":"12","children":[],"childCount":0,"descendantCount":0,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"},{"id":"12-2","label":"공연 관련 서비스업"},{"id":"12-2-1","label":"공연 및 제작 관련 대리업"}],"cho":"ㄱㅇㅁㅈㅈㄱㄹㄷㄹㅇ","search":"12-2-1 공연 및 제작 관련 대리업 공연산업 ㄱㅇㅁㅈㅈㄱㄹㄷㄹㅇ"},{"id":"12-2-2","code":"12-2-2","label":"매니저업","level":3,"parent":"12-2","branch":"12","children":[],"childCount":0,"descendantCount":0,"branchLabel":"공연산업","path":[{"id":"12","label":"공연산업"},{"id":"12-2","label":"공연 관련 서비스업"},{"id":"12-2-2","label":"매니저업"}],"cho":"ㅁㄴㅈㅇ","search":"12-2-2 매니저업 공연산업 ㅁㄴㅈㅇ"}],"links":[{"source":"__scheme__","target":"1","rel":"topConcept"},{"source":"1","target":"1-1","rel":"narrower"},{"source":"1-1","target":"1-1-1","rel":"narrower"},{"source":"1-1","target":"1-1-2","rel":"narrower"},{"source":"1-1","target":"1-1-3","rel":"narrower"},{"source":"1-1","target":"1-1-4","rel":"narrower"},{"source":"1-1","target":"1-1-5","rel":"narrower"},{"source":"1-1","target":"1-1-9","rel":"narrower"},{"source":"1","target":"1-2","rel":"narrower"},{"source":"1-2","target":"1-2-0","rel":"narrower"},{"source":"1","target":"1-3","rel":"narrower"},{"source":"1-3","target":"1-3-1","rel":"narrower"},{"source":"1-3","target":"1-3-2","rel":"narrower"},{"source":"1-3","target":"1-3-3","rel":"narrower"},{"source":"1","target":"1-4","rel":"narrower"},{"source":"1-4","target":"1-4-1","rel":"narrower"},{"source":"1-4","target":"1-4-2","rel":"narrower"},{"source":"1-4","target":"1-4-3","rel":"narrower"},{"source":"1","target":"1-5","rel":"narrower"},{"source":"1-5","target":"1-5-0","rel":"narrower"},{"source":"__scheme__","target":"2","rel":"topConcept"},{"source":"2","target":"2-1","rel":"narrower"},{"source":"2-1","target":"2-1-1","rel":"narrower"},{"source":"2-1","target":"2-1-2","rel":"narrower"},{"source":"2","target":"2-2","rel":"narrower"},{"source":"2-2","target":"2-2-1","rel":"narrower"},{"source":"2-2","target":"2-2-2","rel":"narrower"},{"source":"2-2","target":"2-2-3","rel":"narrower"},{"source":"2-2","target":"2-2-4","rel":"narrower"},{"source":"2","target":"2-3","rel":"narrower"},{"source":"2-3","target":"2-3-1","rel":"narrower"},{"source":"2-3","target":"2-3-2","rel":"narrower"},{"source":"2","target":"2-4","rel":"narrower"},{"source":"2-4","target":"2-4-1","rel":"narrower"},{"source":"2-4","target":"2-4-2","rel":"narrower"},{"source":"2-4","target":"2-4-3","rel":"narrower"},{"source":"__scheme__","target":"3","rel":"topConcept"},{"source":"3","target":"3-1","rel":"narrower"},{"source":"3-1","target":"3-1-1","rel":"narrower"},{"source":"3-1","target":"3-1-2","rel":"narrower"},{"source":"3","target":"3-2","rel":"narrower"},{"source":"3-2","target":"3-2-1","rel":"narrower"},{"source":"3-2","target":"3-2-2","rel":"narrower"},{"source":"3","target":"3-3","rel":"narrower"},{"source":"3-3","target":"3-3-1","rel":"narrower"},{"source":"3-3","target":"3-3-2","rel":"narrower"},{"source":"3","target":"3-4","rel":"narrower"},{"source":"3-4","target":"3-4-1","rel":"narrower"},{"source":"3-4","target":"3-4-2","rel":"narrower"},{"source":"3-4","target":"3-4-3","rel":"narrower"},{"source":"3","target":"3-5","rel":"narrower"},{"source":"3-5","target":"3-5-1","rel":"narrower"},{"source":"3-5","target":"3-5-2","rel":"narrower"},{"source":"3-5","target":"3-5-3","rel":"narrower"},{"source":"3-5","target":"3-5-4","rel":"narrower"},{"source":"3","target":"3-6","rel":"narrower"},{"source":"3-6","target":"3-6-1","rel":"narrower"},{"source":"3-6","target":"3-6-2","rel":"narrower"},{"source":"3","target":"3-7","rel":"narrower"},{"source":"3-7","target":"3-7-0","rel":"narrower"},{"source":"__scheme__","target":"4","rel":"topConcept"},{"source":"4","target":"4-1","rel":"narrower"},{"source":"4-1","target":"4-1-1","rel":"narrower"},{"source":"4-1","target":"4-1-2","rel":"narrower"},{"source":"4-1","target":"4-1-3","rel":"narrower"},{"source":"4-1","target":"4-1-4","rel":"narrower"},{"source":"4-1","target":"4-1-5","rel":"narrower"},{"source":"4-1","target":"4-1-6","rel":"narrower"},{"source":"4-1","target":"4-1-7","rel":"narrower"},{"source":"4","target":"4-2","rel":"narrower"},{"source":"4-2","target":"4-2-1","rel":"narrower"},{"source":"4-2","target":"4-2-2","rel":"narrower"},{"source":"4-2","target":"4-2-3","rel":"narrower"},{"source":"4-2","target":"4-2-4","rel":"narrower"},{"source":"4-2","target":"4-2-5","rel":"narrower"},{"source":"4-2","target":"4-2-6","rel":"narrower"},{"source":"__scheme__","target":"5","rel":"topConcept"},{"source":"5","target":"5-1","rel":"narrower"},{"source":"5-1","target":"5-1-1","rel":"narrower"},{"source":"5-1","target":"5-1-2","rel":"narrower"},{"source":"5","target":"5-2","rel":"narrower"},{"source":"5-2","target":"5-2-1","rel":"narrower"},{"source":"5-2","target":"5-2-2","rel":"narrower"},{"source":"5","target":"5-3","rel":"narrower"},{"source":"5-3","target":"5-3-1","rel":"narrower"},{"source":"5-3","target":"5-3-2","rel":"narrower"},{"source":"5-3","target":"5-3-3","rel":"narrower"},{"source":"5-3","target":"5-3-4","rel":"narrower"},{"source":"__scheme__","target":"6","rel":"topConcept"},{"source":"6","target":"6-1","rel":"narrower"},{"source":"6-1","target":"6-1-1","rel":"narrower"},{"source":"6-1","target":"6-1-2","rel":"narrower"},{"source":"6-1","target":"6-1-3","rel":"narrower"},{"source":"6","target":"6-2","rel":"narrower"},{"source":"6-2","target":"6-2-0","rel":"narrower"},{"source":"6","target":"6-3","rel":"narrower"},{"source":"6-3","target":"6-3-0","rel":"narrower"},{"source":"__scheme__","target":"7","rel":"topConcept"},{"source":"7","target":"7-1","rel":"narrower"},{"source":"7-1","target":"7-1-1","rel":"narrower"},{"source":"7-1","target":"7-1-2","rel":"narrower"},{"source":"7","target":"7-2","rel":"narrower"},{"source":"7-2","target":"7-2-1","rel":"narrower"},{"source":"7-2","target":"7-2-2","rel":"narrower"},{"source":"7-2","target":"7-2-3","rel":"narrower"},{"source":"7","target":"7-3","rel":"narrower"},{"source":"7-3","target":"7-3-1","rel":"narrower"},{"source":"7-3","target":"7-3-2","rel":"narrower"},{"source":"7","target":"7-4","rel":"narrower"},{"source":"7-4","target":"7-4-0","rel":"narrower"},{"source":"7","target":"7-5","rel":"narrower"},{"source":"7-5","target":"7-5-0","rel":"narrower"},{"source":"7","target":"7-6","rel":"narrower"},{"source":"7-6","target":"7-6-1","rel":"narrower"},{"source":"7-6","target":"7-6-2","rel":"narrower"},{"source":"7","target":"7-7","rel":"narrower"},{"source":"7-7","target":"7-7-1","rel":"narrower"},{"source":"7-7","target":"7-7-2","rel":"narrower"},{"source":"7-7","target":"7-7-3","rel":"narrower"},{"source":"7","target":"7-8","rel":"narrower"},{"source":"7-8","target":"7-8-1","rel":"narrower"},{"source":"7-8","target":"7-8-2","rel":"narrower"},{"source":"7-8","target":"7-8-3","rel":"narrower"},{"source":"7","target":"7-9","rel":"narrower"},{"source":"7-9","target":"7-9-1","rel":"narrower"},{"source":"7-9","target":"7-9-2","rel":"narrower"},{"source":"__scheme__","target":"8","rel":"topConcept"},{"source":"8","target":"8-1","rel":"narrower"},{"source":"8-1","target":"8-1-1","rel":"narrower"},{"source":"8-1","target":"8-1-2","rel":"narrower"},{"source":"8","target":"8-2","rel":"narrower"},{"source":"8-2","target":"8-2-1","rel":"narrower"},{"source":"8-2","target":"8-2-2","rel":"narrower"},{"source":"8-2","target":"8-2-3","rel":"narrower"},{"source":"8-2","target":"8-2-4","rel":"narrower"},{"source":"8","target":"8-3","rel":"narrower"},{"source":"8-3","target":"8-3-1","rel":"narrower"},{"source":"8-3","target":"8-3-2","rel":"narrower"},{"source":"8-3","target":"8-3-3","rel":"narrower"},{"source":"8-3","target":"8-3-4","rel":"narrower"},{"source":"8-3","target":"8-3-5","rel":"narrower"},{"source":"8","target":"8-4","rel":"narrower"},{"source":"8-4","target":"8-4-1","rel":"narrower"},{"source":"8-4","target":"8-4-2","rel":"narrower"},{"source":"8","target":"8-5","rel":"narrower"},{"source":"8-5","target":"8-5-1","rel":"narrower"},{"source":"8-5","target":"8-5-2","rel":"narrower"},{"source":"8-5","target":"8-5-3","rel":"narrower"},{"source":"8","target":"8-6","rel":"narrower"},{"source":"8-6","target":"8-6-1","rel":"narrower"},{"source":"8-6","target":"8-6-2","rel":"narrower"},{"source":"__scheme__","target":"9","rel":"topConcept"},{"source":"9","target":"9-1","rel":"narrower"},{"source":"9-1","target":"9-1-1","rel":"narrower"},{"source":"9-1","target":"9-1-2","rel":"narrower"},{"source":"9","target":"9-2","rel":"narrower"},{"source":"9-2","target":"9-2-1","rel":"narrower"},{"source":"9-2","target":"9-2-2","rel":"narrower"},{"source":"9","target":"9-3","rel":"narrower"},{"source":"9-3","target":"9-3-0","rel":"narrower"},{"source":"9","target":"9-4","rel":"narrower"},{"source":"9-4","target":"9-4-0","rel":"narrower"},{"source":"__scheme__","target":"10","rel":"topConcept"},{"source":"10","target":"10-1","rel":"narrower"},{"source":"10-1","target":"10-1-1","rel":"narrower"},{"source":"10-1","target":"10-1-2","rel":"narrower"},{"source":"10-1","target":"10-1-3","rel":"narrower"},{"source":"10-1","target":"10-1-4","rel":"narrower"},{"source":"10","target":"10-2","rel":"narrower"},{"source":"10-2","target":"10-2-0","rel":"narrower"},{"source":"10","target":"10-3","rel":"narrower"},{"source":"10-3","target":"10-3-0","rel":"narrower"},{"source":"10","target":"10-4","rel":"narrower"},{"source":"10-4","target":"10-4-1","rel":"narrower"},{"source":"10-4","target":"10-4-2","rel":"narrower"},{"source":"10-4","target":"10-4-3","rel":"narrower"},{"source":"10-4","target":"10-4-4","rel":"narrower"},{"source":"__scheme__","target":"11","rel":"topConcept"},{"source":"11","target":"11-1","rel":"narrower"},{"source":"11-1","target":"11-1-1","rel":"narrower"},{"source":"11-1","target":"11-1-2","rel":"narrower"},{"source":"11-1","target":"11-1-3","rel":"narrower"},{"source":"11-1","target":"11-1-4","rel":"narrower"},{"source":"11-1","target":"11-1-5","rel":"narrower"},{"source":"11-1","target":"11-1-6","rel":"narrower"},{"source":"11-1","target":"11-1-9","rel":"narrower"},{"source":"11","target":"11-2","rel":"narrower"},{"source":"11-2","target":"11-2-0","rel":"narrower"},{"source":"__scheme__","target":"12","rel":"topConcept"},{"source":"12","target":"12-1","rel":"narrower"},{"source":"12-1","target":"12-1-1","rel":"narrower"},{"source":"12-1","target":"12-1-2","rel":"narrower"},{"source":"12","target":"12-2","rel":"narrower"},{"source":"12-2","target":"12-2-1","rel":"narrower"},{"source":"12-2","target":"12-2-2","rel":"narrower"}],"branches":[{"id":"1","label":"출판산업","childCount":5,"descendantCount":19},{"id":"2","label":"만화산업","childCount":4,"descendantCount":15},{"id":"3","label":"음악산업","childCount":7,"descendantCount":23},{"id":"4","label":"영화산업","childCount":2,"descendantCount":15},{"id":"5","label":"게임산업","childCount":3,"descendantCount":11},{"id":"6","label":"애니메이션산업","childCount":3,"descendantCount":8},{"id":"7","label":"방송 및 영상산업","childCount":9,"descendantCount":28},{"id":"8","label":"광고산업","childCount":6,"descendantCount":24},{"id":"9","label":"캐릭터산업","childCount":4,"descendantCount":10},{"id":"10","label":"지식정보산업","childCount":4,"descendantCount":14},{"id":"11","label":"콘텐츠솔루션산업","childCount":2,"descendantCount":10},{"id":"12","label":"공연산업","childCount":2,"descendantCount":6}],"stats":{"total":195,"level1":12,"level2":51,"level3":132}};
+</script>
+<script>
+(function(){
+"use strict";
+
+const byId = new Map(DATA.nodes.map(n => [n.id, n]));
+const SCHEME = DATA.scheme;
+const LV_NAME = {1:"대분류", 2:"중분류", 3:"소분류"};
+const R = {0:15, 1:10.5, 2:7, 3:4.5};
+
+const svg   = document.getElementById('graph');
+const zoomG = document.getElementById('zoomG');
+const linkG = document.getElementById('linkG');
+const nodeG = document.getElementById('nodeG');
+const tip   = document.getElementById('tip');
+const detail= document.getElementById('detail');
+
+const state = {
+  layout: 'force',
+  levels: {1:true, 2:true, 3:true},
+  showScheme: true, showTop: true, showNarrower: true,
+  arrows: true, infer: false,
+  focus: 'off', hop: 1,
+  selected: null, emphasis: null,
+  query: '', onlyHits: false,
+  view: 'graph',
+  sortKey: 'code', sortDir: 1
+};
+
+/* ---------------- build simulation nodes ---------------- */
+const simNodes = [];
+const simById  = new Map();
+{
+  const s = {id:SCHEME.id, label:SCHEME.label, level:0, parent:null, branch:null,
+             childCount:12, descendantCount:DATA.nodes.length, isScheme:true,
+             x:0, y:0, vx:0, vy:0};
+  simNodes.push(s); simById.set(s.id, s);
+  for (const n of DATA.nodes){
+    const a = Math.random()*Math.PI*2, r = 60 + n.level*130;
+    const s2 = Object.assign(Object.create(n), {
+      x: Math.cos(a)*r, y: Math.sin(a)*r, vx:0, vy:0, isScheme:false
+    });
+    simNodes.push(s2); simById.set(n.id, s2);
+  }
+}
+const simLinks = DATA.links.map(l => ({
+  source: simById.get(l.source), target: simById.get(l.target), rel: l.rel
+}));
+
+/* children index over sim nodes */
+const kids = new Map();
+for (const s of simNodes) kids.set(s.id, []);
+for (const l of simLinks) kids.get(l.source.id).push(l.target);
+
+/* ---------------- helpers ---------------- */
+function ancestors(id){
+  const out = []; let cur = byId.get(id);
+  while (cur && cur.parent){ out.push(cur.parent); cur = byId.get(cur.parent); }
+  return out;
+}
+function descendantIds(id){
+  const out = []; const stack = [...(kids.get(id)||[])];
+  while (stack.length){ const n = stack.pop(); out.push(n.id); stack.push(...(kids.get(n.id)||[])); }
+  return out;
+}
+function neighborsWithin(id, hops){
+  const seen = new Set([id]); let frontier = [id];
+  const adj = new Map();
+  for (const l of simLinks){
+    if (!adj.has(l.source.id)) adj.set(l.source.id, []);
+    if (!adj.has(l.target.id)) adj.set(l.target.id, []);
+    adj.get(l.source.id).push(l.target.id);
+    adj.get(l.target.id).push(l.source.id);
+  }
+  for (let h=0; h<hops; h++){
+    const next = [];
+    for (const f of frontier) for (const nb of (adj.get(f)||[]))
+      if (!seen.has(nb)){ seen.add(nb); next.push(nb); }
+    frontier = next;
+  }
+  return seen;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------------- search ----------------
+   Every term must match somewhere (code / label / branch / 초성). Results are
+   then ranked so the tightest match wins: exact code > code prefix >
+   label prefix > label substring > 초성 prefix > anything else. */
+function codeKey(code){
+  const p = code.split('-').map(Number);
+  return (p[0]??0)*10000 + (p[1]??0)*100 + (p[2]??0);
+}
+function scoreNode(n, q){
+  if (n.code === q) return 0;
+  if (n.code.startsWith(q)) return 1;
+  const l = n.label.toLowerCase();
+  if (l.startsWith(q)) return 2;
+  if (l.includes(q)) return 3;
+  if (n.cho.startsWith(q)) return 4;
+  if (n.cho.includes(q)) return 5;
+  return 6;
+}
+function matches(q){
+  q = q.trim().toLowerCase();
+  if (!q) return null;
+  const terms = q.split(/\s+/);
+  return new Set(DATA.nodes.filter(n => terms.every(t => n.search.includes(t))).map(n => n.id));
+}
+function rankedMatches(){
+  const q = state.query.trim().toLowerCase();
+  if (!q || !hits) return [];
+  const first = q.split(/\s+/)[0];
+  return DATA.nodes
+    .filter(n => hits.has(n.id))
+    .map(n => ({n, s: scoreNode(n, first)}))
+    .sort((a,b) => a.s - b.s || codeKey(a.n.code) - codeKey(b.n.code))
+    .map(x => x.n);
+}
+
+/* ---------------- visibility ---------------- */
+let visible = new Set(), hits = null;
+
+function computeVisible(){
+  hits = matches(state.query);
+  const vis = new Set();
+
+  for (const s of simNodes){
+    if (s.isScheme){ if (state.showScheme) vis.add(s.id); continue; }
+    if (state.levels[s.level]) vis.add(s.id);
+  }
+
+  if (state.query && state.onlyHits && hits){
+    const keep = new Set();
+    for (const h of hits){ keep.add(h); for (const a of ancestors(h)) keep.add(a); }
+    if (state.showScheme) keep.add(SCHEME.id);
+    for (const v of [...vis]) if (!keep.has(v)) vis.delete(v);
+  }
+
+  if (state.selected && state.focus !== 'off'){
+    let keep;
+    if (state.focus === 'lineage'){
+      keep = new Set([state.selected, ...ancestors(state.selected), ...descendantIds(state.selected)]);
+      if (state.showScheme) keep.add(SCHEME.id);
+    } else {
+      keep = neighborsWithin(state.selected, state.hop);
+    }
+    for (const v of [...vis]) if (!keep.has(v)) vis.delete(v);
+  }
+
+  visible = vis;
+}
+
+function linkVisible(l){
+  if (!visible.has(l.source.id) || !visible.has(l.target.id)) return false;
+  if (l.rel === 'topConcept' && !state.showTop) return false;
+  if (l.rel === 'narrower' && !state.showNarrower) return false;
+  return true;
+}
+
+/* ---------------- layouts ---------------- */
+function leafOrder(){
+  const order = []; const depthOf = new Map();
+  (function walk(s, d){
+    if (!visible.has(s.id)) return;
+    depthOf.set(s.id, d);
+    const ch = (kids.get(s.id)||[]).filter(c => visible.has(c.id));
+    if (!ch.length){ order.push(s.id); return; }
+    const start = order.length;
+    for (const c of ch) walk(c, d+1);
+    if (order.length === start) order.push(s.id);
+  })(simById.get(SCHEME.id), 0);
+  return {order, depthOf};
+}
+
+/* leaf-count based tidy positions; returns map id -> {slot, depth} */
+function tidy(){
+  const pos = new Map(); let slot = 0;
+  const roots = state.showScheme
+    ? [simById.get(SCHEME.id)]
+    : simNodes.filter(s => s.level === 1 && visible.has(s.id));
+  const baseDepth = state.showScheme ? 0 : 1;
+
+  function walk(s, d){
+    const ch = (kids.get(s.id)||[]).filter(c => visible.has(c.id));
+    if (!ch.length){ pos.set(s.id, {slot: slot++, depth: d}); return pos.get(s.id).slot; }
+    const cs = ch.map(c => walk(c, d+1));
+    const mid = (cs[0] + cs[cs.length-1]) / 2;
+    pos.set(s.id, {slot: mid, depth: d});
+    return mid;
+  }
+  for (const r of roots){ if (visible.has(r.id)) walk(r, baseDepth ? 0 : 0); }
+  return {pos, span: Math.max(slot-1, 1)};
+}
+
+function applyStaticLayout(){
+  const {pos, span} = tidy();
+  const W = svg.clientWidth || 900, H = svg.clientHeight || 700;
+
+  if (state.layout === 'radial'){
+    const maxR = Math.min(W, H) * 0.44;
+    for (const s of simNodes){
+      const p = pos.get(s.id); if (!p) continue;
+      const ang = (p.slot / (span+1)) * Math.PI * 2 - Math.PI/2;
+      const rad = p.depth === 0 ? 0 : (p.depth / 3) * maxR;
+      s.tx = Math.cos(ang)*rad; s.ty = Math.sin(ang)*rad;
+      s.ang = ang;
+    }
+  } else {
+    const stepX = Math.max(W * 0.9 / (span+1), 16);
+    const stepY = 118;
+    for (const s of simNodes){
+      const p = pos.get(s.id); if (!p) continue;
+      s.tx = (p.slot - span/2) * stepX;
+      s.ty = (p.depth - 1.5) * stepY;
+      s.ang = null;
+    }
+  }
+}
+
+/* ---------------- force simulation ----------------
+   Velocity-Verlet integrator in the style of d3-force: forces write into
+   velocities, velocities decay, then positions integrate. Repulsion uses the
+   dx*k/d² form (magnitude ∝ 1/d), which stays stable at small separations. */
+let alpha = 0, raf = null, needsFit = false;
+const LINK_DIST     = {0:215, 1:118, 2:62};
+const CHARGE        = 330;
+const CHARGE_SCHEME = 3.0;
+const LINK_STRENGTH = 0.65;
+const CENTER_PULL   = 0.055;
+const VEL_DECAY     = 0.58;
+const MAX_D2        = 460*460;
+const MAX_V         = 32;
+
+function kick(a){
+  alpha = Math.max(alpha, a==null?0.9:a);
+  if(!raf) raf = requestAnimationFrame(step);
+}
+
+function step(){
+  raf = null;
+  if (state.layout === 'force') forceTick();
+  else staticTick();
+  render();
+  /* keep the graph framed while it settles; any manual pan/zoom cancels it */
+  if (needsFit) fit();
+  if (alpha > 0.005) raf = requestAnimationFrame(step);
+  else if (needsFit){ needsFit = false; fit(); }
+}
+
+function forceTick(){
+  alpha *= 0.973;
+  const act = simNodes.filter(s => visible.has(s.id));
+
+  /* many-body repulsion */
+  for (let i=0;i<act.length;i++){
+    const a = act[i];
+    for (let j=i+1;j<act.length;j++){
+      const b = act[j];
+      let dx = b.x-a.x, dy = b.y-a.y;
+      let d2 = dx*dx + dy*dy;
+      if (d2 > MAX_D2) continue;
+      if (d2 < 25){
+        dx = (Math.random()-0.5)*6; dy = (Math.random()-0.5)*6;
+        d2 = dx*dx + dy*dy || 25;
+      }
+      const scale = (a.isScheme || b.isScheme) ? CHARGE_SCHEME : 1;
+      const w = CHARGE * scale * alpha / d2;
+      a.vx -= dx*w; a.vy -= dy*w;
+      b.vx += dx*w; b.vy += dy*w;
+    }
+  }
+
+  /* link springs — bias the correction toward the lower-degree endpoint */
+  for (const l of simLinks){
+    if (!linkVisible(l)) continue;
+    const a = l.source, b = l.target;
+    let dx = b.x-a.x, dy = b.y-a.y;
+    let d = Math.sqrt(dx*dx+dy*dy);
+    if (d < 1e-3){ dx = Math.random()*2-1; dy = Math.random()*2-1; d = Math.sqrt(dx*dx+dy*dy); }
+    const target = LINK_DIST[a.isScheme?0:a.level] || 58;
+    const k = (d - target) / d * alpha * LINK_STRENGTH;
+    const da = (kids.get(a.id)||[]).length + 1;
+    const db = (kids.get(b.id)||[]).length + 1;
+    const bias = da / (da + db);
+    b.vx -= dx*k*bias;       b.vy -= dy*k*bias;
+    a.vx += dx*k*(1-bias);   a.vy += dy*k*(1-bias);
+  }
+
+  /* weak pull to origin + integrate */
+  for (const s of act){
+    if (s.fixed){ s.vx = 0; s.vy = 0; continue; }
+    s.vx -= s.x * CENTER_PULL * alpha;
+    s.vy -= s.y * CENTER_PULL * alpha;
+    s.vx *= VEL_DECAY; s.vy *= VEL_DECAY;
+    if (s.vx >  MAX_V) s.vx =  MAX_V; else if (s.vx < -MAX_V) s.vx = -MAX_V;
+    if (s.vy >  MAX_V) s.vy =  MAX_V; else if (s.vy < -MAX_V) s.vy = -MAX_V;
+    s.x += s.vx; s.y += s.vy;
+  }
+}
+
+function staticTick(){
+  alpha *= 0.9;
+  for (const s of simNodes){
+    if (s.tx == null) continue;
+    s.x += (s.tx - s.x) * 0.22;
+    s.y += (s.ty - s.y) * 0.22;
+  }
+}
+
+/* ---------------- zoom / pan ---------------- */
+const view = {k:1, x:0, y:0};
+function applyView(){ zoomG.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.k})`); updateLabelVis(); }
+
+svg.addEventListener('wheel', e => {
+  e.preventDefault(); needsFit = false;
+  const r = svg.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const k2 = Math.min(4, Math.max(0.15, view.k * Math.exp(-e.deltaY * 0.0016)));
+  view.x = mx - (mx - view.x) * (k2/view.k);
+  view.y = my - (my - view.y) * (k2/view.k);
+  view.k = k2; applyView();
+}, {passive:false});
+
+let panning = null, dragNode = null;
+svg.addEventListener('pointerdown', e => {
+  const t = e.target.closest('.node');
+  if (t && state.layout === 'force'){
+    dragNode = simById.get(t.dataset.id);
+    if (dragNode){ dragNode.fixed = true; needsFit = false; svg.setPointerCapture(e.pointerId); return; }
+  }
+  needsFit = false;
+  panning = {x:e.clientX - view.x, y:e.clientY - view.y};
+  svg.classList.add('dragging'); svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener('pointermove', e => {
+  if (dragNode){
+    const r = svg.getBoundingClientRect();
+    dragNode.x = (e.clientX - r.left - view.x)/view.k;
+    dragNode.y = (e.clientY - r.top  - view.y)/view.k;
+    kick(0.35); return;
+  }
+  if (panning){ view.x = e.clientX - panning.x; view.y = e.clientY - panning.y; applyView(); }
+});
+function endPointer(e){
+  if (dragNode){ dragNode.fixed = false; dragNode = null; kick(0.2); }
+  panning = null; svg.classList.remove('dragging');
+  try{ svg.releasePointerCapture(e.pointerId); }catch(_){}
+}
+svg.addEventListener('pointerup', endPointer);
+svg.addEventListener('pointercancel', endPointer);
+
+function fit(){
+  const act = simNodes.filter(s => visible.has(s.id));
+  if (!act.length) return;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for (const s of act){ x0=Math.min(x0,s.x); y0=Math.min(y0,s.y); x1=Math.max(x1,s.x); y1=Math.max(y1,s.y); }
+  const W = svg.clientWidth||900, H = svg.clientHeight||700, pad = 80;
+  /* cap at 1.8 so a 2–3 node focus view doesn't blow up to poster size */
+  const k = Math.min(1.8, Math.max(0.15, Math.min((W-pad*2)/Math.max(x1-x0,1), (H-pad*2)/Math.max(y1-y0,1))));
+  view.k = k;
+  view.x = W/2 - ((x0+x1)/2)*k;
+  view.y = H/2 - ((y0+y1)/2)*k;
+  applyView();
+}
+
+/* ---------------- rendering ---------------- */
+const linkEls = new Map(), nodeEls = new Map();
+const NS = 'http://www.w3.org/2000/svg';
+
+function buildDom(){
+  linkG.textContent=''; nodeG.textContent='';
+  linkEls.clear(); nodeEls.clear();
+
+  for (let i=0;i<simLinks.length;i++){
+    const l = simLinks[i];
+    const p = document.createElementNS(NS,'line');
+    p.setAttribute('class','link' + (l.rel==='topConcept'?' top':''));
+    linkG.appendChild(p); linkEls.set(i, p);
+  }
+  const infer = document.createElementNS(NS,'g'); infer.id='inferG'; linkG.appendChild(infer);
+
+  for (const s of simNodes){
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('class','node ' + (s.isScheme?'scheme':'lv'+s.level));
+    g.dataset.id = s.id;
+    const c = document.createElementNS(NS,'circle');
+    c.setAttribute('r', R[s.isScheme?0:s.level]);
+    g.appendChild(c);
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('dy','0.32em');
+    t.textContent = s.label;
+    g.appendChild(t);
+    nodeG.appendChild(g); nodeEls.set(s.id, g);
+  }
+}
+
+function nodeFill(s){
+  if (s.isScheme) return 'var(--text-secondary)';
+  return `var(--depth-${s.level})`;
+}
+
+function render(){
+  /* links */
+  for (let i=0;i<simLinks.length;i++){
+    const l = simLinks[i], el = linkEls.get(i);
+    if (!linkVisible(l)){ el.style.display='none'; continue; }
+    el.style.display='';
+    el.setAttribute('x1', l.source.x); el.setAttribute('y1', l.source.y);
+    el.setAttribute('x2', l.target.x); el.setAttribute('y2', l.target.y);
+    el.setAttribute('marker-end', state.arrows ? 'url(#arrow)' : '');
+    let cls = 'link' + (l.rel==='topConcept'?' top':'');
+    if (state.selected){
+      const sel = state.selected;
+      const onPath = (l.source.id===sel || l.target.id===sel);
+      if (onPath) cls += ' hl';
+      else if (state.emphasis == null) cls += ' dimmed';
+    }
+    if (state.emphasis){
+      const inBranch = (n) => n.isScheme || n.branch === state.emphasis;
+      if (inBranch(l.source) && inBranch(l.target)) { if(!cls.includes('hl')) cls += ' hl'; }
+      else cls += ' dimmed';
+    }
+    el.setAttribute('class', cls);
+  }
+
+  /* inference edges */
+  const ig = document.getElementById('inferG');
+  ig.textContent='';
+  if (state.infer && state.selected){
+    const anc = ancestors(state.selected);
+    const from = simById.get(state.selected);
+    for (const a of anc){
+      const to = simById.get(a);
+      if (!visible.has(a) || !visible.has(state.selected)) continue;
+      if (byId.get(state.selected).parent === a) continue;
+      const ln = document.createElementNS(NS,'line');
+      ln.setAttribute('class','link infer');
+      ln.setAttribute('x1',from.x); ln.setAttribute('y1',from.y);
+      ln.setAttribute('x2',to.x);   ln.setAttribute('y2',to.y);
+      ig.appendChild(ln);
+    }
+  }
+
+  /* nodes */
+  for (const s of simNodes){
+    const g = nodeEls.get(s.id);
+    if (!visible.has(s.id)){ g.style.display='none'; continue; }
+    g.style.display='';
+    g.setAttribute('transform', `translate(${s.x},${s.y})`);
+    const c = g.firstChild;
+    c.setAttribute('fill', nodeFill(s));
+
+    let cls = 'node ' + (s.isScheme?'scheme':'lv'+s.level);
+    if (state.selected === s.id) cls += ' sel';
+    if (hits && hits.has(s.id)) cls += ' hit';
+    if (state.emphasis && !s.isScheme && s.branch !== state.emphasis) cls += ' dimmed';
+    if (state.selected && state.emphasis == null){
+      const rel = new Set([state.selected, ...ancestors(state.selected), ...descendantIds(state.selected)]);
+      if (!rel.has(s.id) && !s.isScheme) cls += ' dimmed';
+    }
+    if (hits && !hits.has(s.id) && !state.onlyHits && !s.isScheme && !state.selected && !state.emphasis) cls += ' dimmed';
+    g.setAttribute('class', cls);
+
+    /* label placement — radial reads along the spoke, everything else sits below */
+    const t = g.lastChild;
+    const rad = R[s.isScheme?0:s.level];
+    if (state.layout === 'radial' && s.ang != null && !s.isScheme){
+      const deg = s.ang * 180 / Math.PI;
+      const right = Math.cos(s.ang) >= 0;
+      t.setAttribute('transform', `rotate(${right ? deg : deg + 180})`);
+      t.setAttribute('text-anchor', right ? 'start' : 'end');
+      t.setAttribute('x', right ? rad+6 : -(rad+6));
+      t.setAttribute('y', 0);
+      t.setAttribute('dy', '0.32em');
+    } else {
+      t.removeAttribute('transform');
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('x', 0);
+      t.setAttribute('y', rad + 12);
+      t.setAttribute('dy', '0.32em');
+    }
+  }
+  updateLabelVis();
+  document.getElementById('hVis').textContent = [...visible].filter(v => v !== SCHEME.id).length;
+  document.getElementById('hRel').textContent = simLinks.filter(linkVisible).length;
+}
+
+function updateLabelVis(){
+  const k = view.k;
+  for (const s of simNodes){
+    const g = nodeEls.get(s.id); if (!g || g.style.display==='none') continue;
+    const t = g.lastChild;
+    let show;
+    if (s.isScheme) show = true;
+    else if (s.level === 1) show = true;
+    else if (s.level === 2) show = k > 0.72;
+    else show = k > 1.3;
+    if (state.selected === s.id || (hits && hits.has(s.id))) show = true;
+    t.style.display = show ? '' : 'none';
+  }
+}
+
+/* ---------------- interaction ---------------- */
+nodeG.addEventListener('click', e => {
+  const g = e.target.closest('.node'); if (!g) return;
+  select(g.dataset.id === SCHEME.id ? null : g.dataset.id);
+});
+svg.addEventListener('click', e => { if (e.target === svg) select(null); });
+
+nodeG.addEventListener('pointerover', e => {
+  const g = e.target.closest('.node'); if (!g) return;
+  const s = simById.get(g.dataset.id); if (!s) return;
+  tip.innerHTML = s.isScheme
+    ? `<div class="tl">${esc(s.label)}</div><div class="tm">skos:ConceptScheme · ${DATA.nodes.length}개 개념</div>`
+    : `<div class="tc">${esc(s.code)}</div><div class="tl">${esc(s.label)}</div>
+       <div class="tm">${LV_NAME[s.level]} · 하위 ${s.childCount} · 전체 자손 ${s.descendantCount}</div>`;
+  tip.classList.add('on');
+});
+nodeG.addEventListener('pointerout', () => tip.classList.remove('on'));
+svg.addEventListener('pointermove', e => {
+  const r = svg.getBoundingClientRect();
+  let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14;
+  if (x + tip.offsetWidth > r.width) x = e.clientX - r.left - tip.offsetWidth - 14;
+  if (y + tip.offsetHeight > r.height) y = e.clientY - r.top - tip.offsetHeight - 14;
+  tip.style.left = x+'px'; tip.style.top = y+'px';
+});
+
+function select(id){
+  state.selected = id;
+  renderDetail();
+  refresh(state.focus !== 'off' ? 0.6 : 0);
+}
+
+/* ---------------- detail panel ---------------- */
+function renderDetail(){
+  if (!state.selected){
+    detail.innerHTML = `<div class="empty">개념을 클릭하면 SKOS 속성과 상·하위 관계가 여기에 표시됩니다.<br><br>
+      <b>조작법</b><br>· 휠 = 확대/축소, 드래그 = 이동<br>· 노드 드래그 = 위치 고정(힘 기반)<br>· 배경 클릭 = 선택 해제</div>`;
+    return;
+  }
+  const n = byId.get(state.selected);
+  const color = `var(--depth-${n.level})`;
+  const crumb = n.path.map((p,i) =>
+    i === n.path.length-1
+      ? `<span class="cur">${esc(p.label)}</span>`
+      : `<a data-goto="${p.id}">${esc(p.label)}</a>`
+  ).join('<span class="sep">›</span>');
+
+  const children = (byId.get(n.id).children||[]).map(cid => {
+    const c = byId.get(cid);
+    return `<span class="chip" data-goto="${cid}"><span class="cc">${esc(c.code)}</span>${esc(c.label)}</span>`;
+  }).join('');
+
+  const sibs = n.parent
+    ? byId.get(n.parent).children.filter(x => x !== n.id).map(sid => {
+        const c = byId.get(sid);
+        return `<span class="chip" data-goto="${sid}"><span class="cc">${esc(c.code)}</span>${esc(c.label)}</span>`;
+      }).join('')
+    : '';
+
+  const broaderRow = n.parent
+    ? `<tr><td class="p">skos:broader</td><td><a class="chip" data-goto="${n.parent}" style="display:inline-flex"><span class="cc">${esc(n.parent)}</span>${esc(byId.get(n.parent).label)}</a></td></tr>`
+    : `<tr><td class="p">skos:topConceptOf</td><td>${esc(SCHEME.label)}</td></tr>`;
+
+  const transitive = ancestors(n.id).map(a =>
+    `<span class="chip" data-goto="${a}"><span class="cc">${esc(a)}</span>${esc(byId.get(a).label)}</span>`).join('');
+
+  detail.innerHTML = `
+    <div class="panel">
+      <div class="crumb">${crumb}</div>
+      <div class="dcode">${esc(n.code)}</div>
+      <div class="dlabel">${esc(n.label)}</div>
+      <span class="badge" style="background:${color}">${LV_NAME[n.level]} · depth ${n.level}</span>
+    </div>
+    <div class="panel">
+      <h2>SKOS 속성</h2>
+      <table class="triples">
+        <tr><td class="p">rdf:type</td><td>skos:Concept</td></tr>
+        <tr><td class="p">skos:notation</td><td>${esc(n.code)}</td></tr>
+        <tr><td class="p">skos:prefLabel</td><td>${esc(n.label)} <span style="color:var(--muted)">@ko</span></td></tr>
+        <tr><td class="p">skos:inScheme</td><td>${esc(SCHEME.label)}</td></tr>
+        ${broaderRow}
+        <tr><td class="p">skos:narrower</td><td>${n.childCount ? n.childCount + '개' : '<span style="color:var(--muted)">없음 (leaf)</span>'}</td></tr>
+      </table>
+    </div>
+    ${transitive ? `<div class="panel"><h2>skos:broaderTransitive (추론)</h2><div class="chips">${transitive}</div></div>` : ''}
+    ${children ? `<div class="panel"><h2>하위 개념 — skos:narrower (${n.childCount})</h2><div class="chips">${children}</div></div>` : ''}
+    ${sibs ? `<div class="panel"><h2>형제 개념 (${byId.get(n.parent).children.length-1})</h2><div class="chips">${sibs}</div></div>` : ''}
+    <div class="panel">
+      <h2>하위 트리 규모</h2>
+      <div style="font-size:22px;font-weight:660;letter-spacing:-.02em">${n.descendantCount}</div>
+      <div style="font-size:11px;color:var(--muted)">전체 자손 개념 수</div>
+    </div>`;
+}
+
+detail.addEventListener('click', e => {
+  const t = e.target.closest('[data-goto]');
+  if (t) select(t.dataset.goto);
+});
+
+/* ---------------- sidebar wiring ---------------- */
+const qEl = document.getElementById('q');
+const searchWrap = document.getElementById('searchWrap');
+const resultsEl = document.getElementById('results');
+
+function renderResults(){
+  if (!state.query.trim()){ resultsEl.innerHTML=''; return; }
+  const all = rankedMatches();
+  const list = all.slice(0, 60);
+  if (!list.length){ resultsEl.innerHTML = `<div class="res"><span class="l" style="color:var(--muted)">일치하는 개념이 없습니다</span></div>`; return; }
+  resultsEl.innerHTML = list.map(n =>
+    `<div class="res" data-goto="${n.id}"><span class="c">${esc(n.code)}</span><span class="l">${esc(n.label)}</span></div>`
+  ).join('') + (all.length > list.length
+    ? `<div class="res" style="cursor:default"><span class="l" style="color:var(--muted)">…외 ${all.length-list.length}건</span></div>` : '');
+}
+resultsEl.addEventListener('click', e => {
+  const t = e.target.closest('[data-goto]'); if (!t) return;
+  select(t.dataset.goto); centerOn(t.dataset.goto);
+});
+
+function centerOn(id){
+  const s = simById.get(id); if (!s) return;
+  needsFit = false;
+  const W = svg.clientWidth||900, H = svg.clientHeight||700;
+  view.k = Math.max(view.k, 1.3);
+  view.x = W/2 - s.x*view.k; view.y = H/2 - s.y*view.k;
+  applyView();
+}
+
+qEl.addEventListener('input', () => {
+  state.query = qEl.value;
+  searchWrap.classList.toggle('has-value', !!qEl.value);
+  refresh(0);
+  renderResults();
+});
+document.getElementById('qClear').addEventListener('click', () => {
+  qEl.value=''; state.query=''; searchWrap.classList.remove('has-value'); refresh(0); renderResults(); qEl.focus();
+});
+document.getElementById('onlyHits').addEventListener('change', e => {
+  state.onlyHits = e.target.checked; refresh(0.5);
+});
+
+document.querySelectorAll('[data-lv]').forEach(el => el.addEventListener('change', () => {
+  state.levels[+el.dataset.lv] = el.checked; refresh(0.7);
+}));
+
+const bind = (id, key, after) => document.getElementById(id).addEventListener('change', e => {
+  state[key] = e.target.checked; refresh(after||0);
+});
+bind('rNarrower','showNarrower');
+bind('rTop','showTop');
+bind('rScheme','showScheme', 0.7);
+bind('rArrow','arrows');
+bind('rInfer','infer');
+
+document.getElementById('layoutSel').addEventListener('change', e => {
+  state.layout = e.target.value;
+  if (state.layout !== 'force') applyStaticLayout();
+  needsFit = true; kick(1);
+});
+document.getElementById('focusSel').addEventListener('change', e => {
+  state.focus = e.target.value;
+  document.getElementById('hopWrap').style.display = state.focus === 'hop' ? '' : 'none';
+  updateStatus(); refresh(0.8);
+});
+document.getElementById('hopR').addEventListener('input', e => {
+  state.hop = +e.target.value;
+  document.getElementById('hopVal').textContent = state.hop + ' 홉';
+  refresh(0.5);
+});
+
+/* branch table */
+const branchBody = document.getElementById('branchBody');
+branchBody.innerHTML = DATA.branches.map(b =>
+  `<tr data-branch="${b.id}"><td>${esc(b.id)}. ${esc(b.label)}</td><td class="num">${b.childCount}</td><td class="num">${b.descendantCount}</td></tr>`
+).join('');
+branchBody.addEventListener('click', e => {
+  const tr = e.target.closest('[data-branch]'); if (!tr) return;
+  state.emphasis = state.emphasis === tr.dataset.branch ? null : tr.dataset.branch;
+  [...branchBody.children].forEach(r => r.classList.toggle('on', r.dataset.branch === state.emphasis));
+  updateStatus(); refresh(0);
+});
+
+function updateStatus(){
+  const st = document.getElementById('status'), tx = document.getElementById('statusText');
+  const bits = [];
+  if (state.emphasis) bits.push(`대분류 강조: ${state.emphasis}. ${byId.get(state.emphasis).label}`);
+  if (state.focus !== 'off' && state.selected)
+    bits.push(state.focus==='lineage' ? `계보 초점: ${byId.get(state.selected).label}` : `${state.hop}홉 이웃: ${byId.get(state.selected).label}`);
+  if (bits.length){ tx.textContent = bits.join('  ·  '); st.classList.add('on'); }
+  else st.classList.remove('on');
+}
+document.getElementById('statusClear').addEventListener('click', () => {
+  state.emphasis = null; state.focus = 'off';
+  document.getElementById('focusSel').value = 'off';
+  document.getElementById('hopWrap').style.display = 'none';
+  [...branchBody.children].forEach(r => r.classList.remove('on'));
+  updateStatus(); refresh(0.7);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  Object.assign(state, {layout:'force', levels:{1:true,2:true,3:true}, showScheme:true,
+    showTop:true, showNarrower:true, arrows:true, infer:false, focus:'off', hop:1,
+    selected:null, emphasis:null, query:'', onlyHits:false});
+  document.querySelectorAll('[data-lv]').forEach(el => el.checked = true);
+  ['rNarrower','rTop','rScheme','rArrow'].forEach(i => document.getElementById(i).checked = true);
+  document.getElementById('rInfer').checked = false;
+  document.getElementById('onlyHits').checked = false;
+  document.getElementById('layoutSel').value = 'force';
+  document.getElementById('focusSel').value = 'off';
+  document.getElementById('hopWrap').style.display='none';
+  qEl.value=''; searchWrap.classList.remove('has-value'); resultsEl.innerHTML='';
+  [...branchBody.children].forEach(r => r.classList.remove('on'));
+  updateStatus(); renderDetail(); needsFit = true; refresh(1);
+});
+
+/* zoom buttons */
+document.getElementById('zIn').addEventListener('click', () => { needsFit=false; view.k = Math.min(4, view.k*1.3); applyView(); });
+document.getElementById('zOut').addEventListener('click', () => { needsFit=false; view.k = Math.max(0.15, view.k/1.3); applyView(); });
+document.getElementById('zFit').addEventListener('click', fit);
+
+/* theme */
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const sysDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const next = cur ? (cur === 'dark' ? 'light' : 'dark') : (sysDark ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', next);
+});
+
+/* view switch */
+const tableView = document.getElementById('tableView');
+document.getElementById('vGraph').addEventListener('click', () => setView('graph'));
+document.getElementById('vTable').addEventListener('click', () => setView('table'));
+function setView(v){
+  state.view = v;
+  tableView.classList.toggle('on', v === 'table');
+  document.getElementById('vGraph').setAttribute('aria-pressed', v==='graph');
+  document.getElementById('vTable').setAttribute('aria-pressed', v==='table');
+  if (v === 'table') renderTable(); else kick(0.3);
+}
+
+/* table view */
+function renderTable(){
+  let rows = DATA.nodes.filter(n => state.levels[n.level]);
+  if (hits) rows = rows.filter(n => hits.has(n.id));
+  if (state.emphasis) rows = rows.filter(n => n.branch === state.emphasis);
+  const k = state.sortKey, d = state.sortDir;
+  rows = rows.slice().sort((a,b) => {
+    let x = a[k], y = b[k];
+    if (k === 'code') { x = a.code.split('-').map(Number); y = b.code.split('-').map(Number);
+      for (let i=0;i<3;i++){ const dx=(x[i]??-1)-(y[i]??-1); if (dx) return dx*d; } return 0; }
+    if (typeof x === 'number') return (x-y)*d;
+    return String(x??'').localeCompare(String(y??''), 'ko') * d;
+  });
+  document.getElementById('tableBody').innerHTML = rows.map(n => `
+    <tr data-goto="${n.id}">
+      <td class="code">${esc(n.code)}</td>
+      <td>${esc(n.label)}</td>
+      <td>${LV_NAME[n.level]}</td>
+      <td>${esc(n.branchLabel)}</td>
+      <td>${n.parent ? esc(byId.get(n.parent).label) : '<span style="color:var(--muted)">— (top concept)</span>'}</td>
+      <td class="num">${n.childCount || ''}</td>
+    </tr>`).join('');
+}
+document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => {
+  const k = th.dataset.sort;
+  state.sortDir = state.sortKey === k ? -state.sortDir : 1;
+  state.sortKey = k; renderTable();
+}));
+document.getElementById('tableBody').addEventListener('click', e => {
+  const tr = e.target.closest('[data-goto]'); if (!tr) return;
+  setView('graph'); select(tr.dataset.goto); setTimeout(() => centerOn(tr.dataset.goto), 60);
+});
+
+/* keyboard */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ select(null); qEl.blur(); }
+  if (e.key === '/' && document.activeElement !== qEl){ e.preventDefault(); qEl.focus(); qEl.select(); }
+});
+
+/* ---------------- refresh ---------------- */
+function refresh(a){
+  computeVisible();
+  if (state.layout !== 'force') applyStaticLayout();
+  if (a) kick(a); else { render(); }
+  if (state.view === 'table') renderTable();
+  updateStatus();
+}
+
+/* ---------------- boot ---------------- */
+document.getElementById('hTotal').textContent = DATA.stats.total;
+document.getElementById('c1').textContent = DATA.stats.level1;
+document.getElementById('c2').textContent = DATA.stats.level2;
+document.getElementById('c3').textContent = DATA.stats.level3;
+
+buildDom();
+computeVisible();
+renderDetail();
+needsFit = true;
+kick(1);
+window.addEventListener('resize', () => { if (state.layout!=='force') applyStaticLayout(); render(); });
+
+})();
+</script>
+</body>
+</html>
